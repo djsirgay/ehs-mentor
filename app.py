@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, UploadFile, File, Response
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from pydantic import BaseModel
 import os, json, yaml, sqlite3, time, random, csv, io
 
@@ -251,6 +252,15 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# WWW redirect middleware
+@app.middleware("http")
+async def www_to_root(request, call_next):
+    host = request.headers.get("host", "").lower()
+    if host.startswith("www."):
+        target = str(request.url).replace("//www.", "//")
+        return RedirectResponse(target, status_code=308)
+    return await call_next(request)
 
 @app.middleware("http")
 async def add_csp_header(request, call_next):
