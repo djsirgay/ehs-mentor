@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException, UploadFile, File, Response
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -319,8 +320,17 @@ class Complete(BaseModel):
     module_id: str
     status: str = "completed"
 
-@app.get("/")
+# Redirects
+@app.get("/", include_in_schema=False)
 def root():
+    return RedirectResponse(url="/app/", status_code=307)
+
+@app.get("/app", include_in_schema=False)
+def app_no_slash():
+    return RedirectResponse(url="/app/", status_code=308)
+
+@app.get("/api")
+def api_info():
     return {"ok": True, "endpoints": ["/app", "/recommend", "/user/register", "/import/roster", "/progress/{user_id}", "/catalog/roles", "/stats/roles", "/assign/all", "/export/progress", "/users/list", "/progress/{user_id}/reset"]}
 
 @app.get("/health")
