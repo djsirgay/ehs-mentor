@@ -1,0 +1,10 @@
+id: bsc_usage_cdc_v1
+title: Biosafety Cabinet — Essentials (CDC/BMBL)
+regulators: ["CDC","NIH"]
+roles: ["Lab Technician"]
+location: ["US"]
+risk_tags: ["biosafety","airflow","ppe"]
+prerequisites: []
+length_min: 6
+version: "1.0"
+source: policies/bmbl_bsc_checklist.txt

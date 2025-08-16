@@ -1,0 +1,10 @@
+id: forklift_refuel_osha_v1
+title: Forklift — Refueling (OSHA 1910.106)
+regulators: ["OSHA"]
+roles: ["Forklift Operator"]
+location: ["US"]
+risk_tags: ["refueling","flammable_liquids"]
+prerequisites: ["forklift_preop_osha_v1"]
+length_min: 4
+version: "1.0"
+source: policies/osha_1910_106_refueling.txt

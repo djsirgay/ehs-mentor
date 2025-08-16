@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EHS Training — Lebedev Style</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lebedev-vibe.css">
+</head>
+<body>
+  <header class="appbar">
+    <div class="container" style="display:flex;justify-content:space-between;align-items:center;gap:16px;">
+      <div style="display:flex;align-items:center;gap:16px;">
+        <img src="https://ucm.calpoly.edu/sites/default/files/inline-images/logo_page_graphics-03%20%281%29.png" alt="Cal Poly" height="64" style="filter:brightness(0) invert(1)">
+        <span style="opacity:.9">Hello, <strong id="user-name">Svetlana Alekseevna</strong></span>
+      </div>
+      <nav class="tabs">
+        <a class="tab is-active" href="#overview">Overview</a>
+        <a class="tab" href="#required">Required</a>
+        <a class="tab" href="#micro">Micro</a>
+        <a class="tab" href="#history">History</a>
+        <a class="tab" href="#help">Help</a>
+      </nav>
+    </div>
+  </header>
+
+  <section id="overview" class="container">
+    <div class="hero">
+      <h1>🔔 Next Action Required</h1>
+      <p style="opacity:.85;margin:6px 0 16px">Continue your safety training to stay compliant with Cal Poly requirements.</p>
+      <button class="cta" id="start-next">Start Next Module</button>
+
+      <div class="metrics reveal">
+        <div class="metric"><div class="kpi" id="m-completed">-</div><small>Completed</small></div>
+        <div class="metric"><div class="kpi" id="m-total">-</div><small>Total Modules</small></div>
+        <div class="metric"><div class="kpi" id="m-progress">-%</div><small>Progress</small></div>
+        <div class="metric"><div class="kpi" id="m-server">🟡</div><small>Server</small></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="required" class="container">
+    <h2 class="section-title">📚 Required Training</h2>
+    <div class="grid2" id="required-list">
+      <!-- Динамически заполняется -->
+    </div>
+  </section>
+
+  <section id="micro" class="container">
+    <h2 class="section-title">🧠 Micro Learning</h2>
+    <div class="grid2" id="micro-list">
+      <!-- Динамически заполняется -->
+    </div>
+  </section>
+
+  <section id="history" class="container">
+    <h2 class="section-title">📈 Progress & History</h2>
+    <div class="card reveal" style="flex-direction:column">
+      <div style="display:flex; gap:28px; flex-wrap:wrap">
+        <div><div class="kpi" style="font-weight:800;font-size:32px" id="h-completed">-</div><small class="muted">Completed</small></div>
+        <div><div class="kpi" style="font-weight:800;font-size:32px" id="h-total">-</div><small class="muted">Total</small></div>
+        <div><div class="kpi" style="font-weight:800;font-size:32px" id="h-progress">-%</div><small class="muted">Progress</small></div>
+      </div>
+      <div style="margin:14px 0 8px" class="progress"><div id="progress-bar"></div></div>
+      <button class="btn-ghost" id="view-history">View Training History</button>
+    </div>
+  </section>
+
+  <section id="help" class="container">
+    <h2 class="section-title">❓ Help & Support</h2>
+    <div class="accordion">
+      <details class="ac reveal" open>
+        <summary>Contact EHS Office</summary>
+        <p><strong>Phone:</strong> (805) 756-6661<br>
+        <strong>Email:</strong> ehs@calpoly.edu<br>
+        Environmental Health & Safety Office</p>
+      </details>
+      <details class="ac reveal" data-variant="pink">
+        <summary>Training Requirements</summary>
+        <p>All students and staff must complete safety training based on their role and equipment access. Training must be renewed annually.</p>
+      </details>
+      <details class="ac reveal" data-variant="blue">
+        <summary>Technical Support</summary>
+        <p>For issues with the training system, contact IT support or use the reset progress button in your profile.</p>
+      </details>
+    </div>
+  </section>
+
+  <script>
+    const API = "http://127.0.0.1:8000";
+    const USER = "svetlana";
+
+    // Анимации появления
+    const obs = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add('is-in')), {threshold:.12});
+    document.querySelectorAll('.card,.metric,.ac,.reveal').forEach(el => obs.observe(el));
+
+    // Навигация
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('is-active'));
+        tab.classList.add('is-active');
+        const target = document.querySelector(tab.getAttribute('href'));
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+
+    // Загрузка данных
+    async function loadAll() {
+      try {
+        // Прогресс
+        const p = await fetch(`${API}/progress/${USER}`).then(r => r.json());
+        const completed = p.items?.filter(i => i.status === 'completed').length || 0;
+        const total = p.items?.length || 0;
+        const pct = total ? Math.round((completed / total) * 100) : 0;
+
+        document.getElementById('m-completed').textContent = completed;
+        document.getElementById('m-total').textContent = total;
+        document.getElementById('m-progress').textContent = pct + '%';
+        document.getElementById('m-server').textContent = '🟢';
+
+        document.getElementById('h-completed').textContent = completed;
+        document.getElementById('h-total').textContent = total;
+        document.getElementById('h-progress').textContent = pct + '%';
+        document.getElementById('progress-bar').style.width = pct + '%';
+
+        // Рендер модулей
+        renderModules(p.items || []);
+
+      } catch (e) {
+        console.log('API недоступен, используем демо данные');
+        document.getElementById('m-server').textContent = '🔴';
+        loadDemoData();
+      }
+    }
+
+    function renderModules(items) {
+      const assigned = items.filter(i => i.status === 'assigned');
+      const completed = new Set(items.filter(i => i.status === 'completed').map(i => i.module_id));
+
+      // Required модули
+      const requiredHtml = assigned.slice(0, 4).map(item => {
+        const isOverdue = Math.random() > 0.7; // Демо логика
+        const priority = isOverdue ? 'high' : 'medium';
+        const icon = getIcon(item.module_id);
+        
+        return `
+          <article class="card reveal">
+            <div style="font-size:28px">${icon}</div>
+            <div style="flex:1">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+                <h3 style="margin:0;font-weight:800">${item.title || item.module_id} <span class="badge ${priority}">${priority.toUpperCase()}</span></h3>
+                <button class="btn" data-action="start" data-id="${item.module_id}">Start now</button>
+              </div>
+              <p style="margin:6px 0 0; color:var(--muted)">${item.description || 'Essential safety training'} • Due: ${isOverdue ? '<span style="color:var(--danger)">Overdue</span>' : '2 days'}</p>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      // Micro модули
+      const microHtml = assigned.slice(0, 2).map(item => {
+        const icon = getIcon(item.module_id);
+        return `
+          <article class="card reveal">
+            <div style="font-size:28px">${icon}</div>
+            <div style="flex:1; display:flex; justify-content:space-between; gap:12px; align-items:center">
+              <div>
+                <h3 style="margin:0;font-weight:800">${item.title || item.module_id}</h3>
+                <small style="color:var(--muted)">5 min module</small>
+              </div>
+              <button class="btn-ghost" data-action="quick" data-id="${item.module_id}">Quick Learn</button>
+            </div>
+          </article>
+        `;
+      }).join('');
+
+      document.getElementById('required-list').innerHTML = requiredHtml || '<p style="color:var(--muted)">🎉 All required training completed!</p>';
+      document.getElementById('micro-list').innerHTML = microHtml || '<p style="color:var(--muted)">🎉 All micro modules completed!</p>';
+
+      // Переподключаем observer для новых элементов
+      document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+    }
+
+    function getIcon(moduleId) {
+      if (/lab|safety/.test(moduleId)) return '⚠️';
+      if (/chem/.test(moduleId)) return '🧪';
+      if (/fire/.test(moduleId)) return '🔥';
+      if (/ppe/.test(moduleId)) return '🦺';
+      if (/machine|shop/.test(moduleId)) return '🛠️';
+      return '📋';
+    }
+
+    function loadDemoData() {
+      document.getElementById('m-completed').textContent = '3';
+      document.getElementById('m-total').textContent = '7';
+      document.getElementById('m-progress').textContent = '43%';
+      
+      document.getElementById('h-completed').textContent = '3';
+      document.getElementById('h-total').textContent = '7';
+      document.getElementById('h-progress').textContent = '43%';
+      document.getElementById('progress-bar').style.width = '43%';
+
+      // Демо карточки
+      document.getElementById('required-list').innerHTML = `
+        <article class="card reveal">
+          <div style="font-size:28px">⚠️</div>
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+              <h3 style="margin:0;font-weight:800">Lab Safety Training <span class="badge high">HIGH</span></h3>
+              <button class="btn" onclick="alert('Demo: Starting Lab Safety')">Start now</button>
+            </div>
+            <p style="margin:6px 0 0; color:var(--muted)">Essential safety protocols for laboratory work • Due: <span style="color:var(--danger)">Overdue</span></p>
+          </div>
+        </article>
+        <article class="card reveal">
+          <div style="font-size:28px">🛠️</div>
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+              <h3 style="margin:0;font-weight:800">Machine Shop Safety <span class="badge medium">MEDIUM</span></h3>
+              <button class="btn-ghost" onclick="alert('Demo: Starting Machine Shop')">Start</button>
+            </div>
+            <p style="margin:6px 0 0; color:var(--muted)">Safe operation of workshop equipment • Due: 2 days</p>
+          </div>
+        </article>
+      `;
+
+      document.getElementById('micro-list').innerHTML = `
+        <article class="card reveal">
+          <div style="font-size:28px">🧪</div>
+          <div style="flex:1; display:flex; justify-content:space-between; gap:12px; align-items:center">
+            <div>
+              <h3 style="margin:0;font-weight:800">Chemical Handling</h3>
+              <small style="color:var(--muted)">5 min module</small>
+            </div>
+            <button class="btn-ghost" onclick="alert('Demo: Quick Learn Chemical')">Quick Learn</button>
+          </div>
+        </article>
+      `;
+    }
+
+    // Обработчики событий
+    document.getElementById('start-next')?.addEventListener('click', () => {
+      const next = document.querySelector('[data-action="start"]')?.dataset.id;
+      if (next) {
+        alert(`Demo: Starting module ${next}`);
+      } else {
+        alert('🎉 All training completed!');
+      }
+    });
+
+    document.getElementById('view-history')?.addEventListener('click', () => {
+      alert('Demo: Opening training history...');
+    });
+
+    // Запуск
+    loadAll();
+  </script>
+</body>
+</html>

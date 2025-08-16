@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Application Form</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div class="max-w-screen-lg mx-auto px-4 py-12">
+    <div class="text-center mb-12">
+      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Application</h1>
+      <p class="text-xl text-gray-600 max-w-2xl mx-auto">Join our creative program and transform your design career. Tell us about yourself and your aspirations.</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-lg p-6 md:p-8">
+      <form id="applicationForm" class="space-y-6">
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label for="fullName" class="block text-sm font-medium text-gray-700 mb-2">
+              Full Name <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="fullName"
+              name="fullName"
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors"
+              placeholder="Enter your full name"
+            >
+            <div id="fullName-error" class="text-red-600 text-sm mt-1 hidden" role="alert"></div>
+          </div>
+
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
+              Email Address <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors"
+              placeholder="your@email.com"
+            >
+            <div id="email-error" class="text-red-600 text-sm mt-1 hidden" role="alert"></div>
+          </div>
+
+          <div>
+            <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">
+              Phone Number <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="tel"
+              id="phone"
+              name="phone"
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors"
+              placeholder="+1 (555) 123-4567"
+            >
+            <div id="phone-error" class="text-red-600 text-sm mt-1 hidden" role="alert"></div>
+          </div>
+
+          <div>
+            <label for="city" class="block text-sm font-medium text-gray-700 mb-2">
+              City <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="city"
+              name="city"
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors"
+              placeholder="Your city"
+            >
+            <div id="city-error" class="text-red-600 text-sm mt-1 hidden" role="alert"></div>
+          </div>
+        </div>
+
+        <div>
+          <label for="portfolio" class="block text-sm font-medium text-gray-700 mb-2">
+            Portfolio URL
+          </label>
+          <input
+            type="url"
+            id="portfolio"
+            name="portfolio"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors"
+            placeholder="https://your-portfolio.com"
+          >
+          <p class="text-gray-500 text-sm mt-1">Share your best work with us</p>
+        </div>
+
+        <div>
+          <label for="about" class="block text-sm font-medium text-gray-700 mb-2">
+            About Yourself <span class="text-red-500">*</span>
+          </label>
+          <textarea
+            id="about"
+            name="about"
+            rows="5"
+            required
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors resize-none"
+            placeholder="Tell us about your background, interests, and why you want to join this program..."
+          ></textarea>
+          <div id="about-error" class="text-red-600 text-sm mt-1 hidden" role="alert"></div>
+          <p class="text-gray-500 text-sm mt-1">Minimum 50 characters</p>
+        </div>
+
+        <div>
+          <label for="cv" class="block text-sm font-medium text-gray-700 mb-2">
+            CV/Resume
+          </label>
+          <input
+            type="file"
+            id="cv"
+            name="cv"
+            accept=".pdf,.doc,.docx"
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-colors file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-gray-100 file:text-gray-700 hover:file:bg-gray-200"
+          >
+          <div id="filename-preview" class="text-gray-600 text-sm mt-1 hidden"></div>
+          <p class="text-gray-500 text-sm mt-1">PDF, DOC, or DOCX format</p>
+        </div>
+
+        <div class="flex items-start space-x-3">
+          <input
+            type="checkbox"
+            id="consent"
+            name="consent"
+            required
+            class="mt-1 h-4 w-4 text-gray-900 border-gray-300 rounded focus:ring-2 focus:ring-gray-900"
+          >
+          <div>
+            <label for="consent" class="text-sm text-gray-700">
+              I agree to the processing of my personal data and consent to receive communications about the program. <span class="text-red-500">*</span>
+            </label>
+            <div id="consent-error" class="text-red-600 text-sm mt-1 hidden" role="alert"></div>
+          </div>
+        </div>
+
+        <div class="pt-4">
+          <button
+            type="submit"
+            id="submitBtn"
+            disabled
+            class="w-full md:w-auto px-8 py-4 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-gray-900 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+          >
+            Submit Application
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Success Toast -->
+  <div id="successToast" class="fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-50 hidden">
+    <div class="flex items-center justify-between">
+      <span>Application submitted successfully!</span>
+      <button onclick="hideToast()" class="ml-4 text-green-200 hover:text-white">×</button>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('applicationForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const consentCheckbox = document.getElementById('consent');
+    const cvInput = document.getElementById('cv');
+    const filenamePreview = document.getElementById('filename-preview');
+
+    // Validation rules
+    const validators = {
+      fullName: (value) => value.length >= 2 ? null : 'Name must be at least 2 characters',
+      email: (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? null : 'Please enter a valid email',
+      phone: (value) => value.replace(/\D/g, '').length >= 10 ? null : 'Phone number must be at least 10 digits',
+      city: (value) => value.length >= 2 ? null : 'City is required',
+      portfolio: (value) => !value || /^https?:\/\/.+/.test(value) ? null : 'Please enter a valid URL',
+      about: (value) => value.length >= 50 ? null : 'Please tell us more about yourself (min 50 characters)'
+    };
+
+    // Validate field
+    function validateField(field) {
+      const value = field.value.trim();
+      const validator = validators[field.name];
+      const errorEl = document.getElementById(`${field.name}-error`);
+      
+      if (validator) {
+        const error = validator(value);
+        if (error) {
+          field.setAttribute('aria-invalid', 'true');
+          field.setAttribute('aria-describedby', `${field.name}-error`);
+          field.classList.add('border-red-300', 'bg-red-50');
+          errorEl.textContent = error;
+          errorEl.classList.remove('hidden');
+          return false;
+        } else {
+          field.setAttribute('aria-invalid', 'false');
+          field.removeAttribute('aria-describedby');
+          field.classList.remove('border-red-300', 'bg-red-50');
+          errorEl.classList.add('hidden');
+          return true;
+        }
+      }
+      return true;
+    }
+
+    // Check form validity
+    function checkFormValidity() {
+      const requiredFields = form.querySelectorAll('input[required], textarea[required]');
+      let isValid = true;
+      
+      requiredFields.forEach(field => {
+        if (!validateField(field)) {
+          isValid = false;
+        }
+      });
+      
+      const consentValid = consentCheckbox.checked;
+      if (!consentValid) {
+        document.getElementById('consent-error').textContent = 'You must agree to continue';
+        document.getElementById('consent-error').classList.remove('hidden');
+      } else {
+        document.getElementById('consent-error').classList.add('hidden');
+      }
+      
+      submitBtn.disabled = !isValid || !consentValid;
+    }
+
+    // File preview
+    cvInput.addEventListener('change', function() {
+      if (this.files.length > 0) {
+        filenamePreview.textContent = `Selected: ${this.files[0].name}`;
+        filenamePreview.classList.remove('hidden');
+      } else {
+        filenamePreview.classList.add('hidden');
+      }
+    });
+
+    // Add event listeners
+    form.querySelectorAll('input, textarea').forEach(field => {
+      field.addEventListener('blur', () => validateField(field));
+      field.addEventListener('input', checkFormValidity);
+    });
+
+    consentCheckbox.addEventListener('change', checkFormValidity);
+
+    // Form submission
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+      
+      console.log('Form submission:', data);
+      
+      // Show success toast
+      document.getElementById('successToast').classList.remove('hidden');
+      
+      // Reset form
+      form.reset();
+      filenamePreview.classList.add('hidden');
+      checkFormValidity();
+      
+      // Hide toast after 5 seconds
+      setTimeout(() => {
+        document.getElementById('successToast').classList.add('hidden');
+      }, 5000);
+    });
+
+    function hideToast() {
+      document.getElementById('successToast').classList.add('hidden');
+    }
+
+    // Initial validation check
+    checkFormValidity();
+  </script>
+</body>
+</html>

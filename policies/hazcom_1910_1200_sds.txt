@@ -1,0 +1,5 @@
+Hazard Communication (OSHA 1910.1200)
+- Chemical hazards must be classified and communicated to workers.
+- Labels and Safety Data Sheets (SDS) must be available and up to date.
+- SDS contents must follow Appendix D.
+Source: OSHA 1910.1200 + App D (demo summary)

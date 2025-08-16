@@ -1,0 +1,5 @@
+PPE Basics (OSHA 1910.132)
+- Employers must assess hazards and provide suitable PPE.
+- PPE must be provided, employees trained, and PPE maintained/replaced.
+- Employees must use PPE according to training and manufacturer instructions.
+Source: OSHA 1910.132 (demo summary)

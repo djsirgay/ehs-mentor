@@ -1,0 +1,6 @@
+Forklift — Pre-Operation (OSHA 1910.178)
+- Before each shift, check brakes, steering, horn and warning devices.
+- Inspect forks, chains and hydraulics for leaks or damage.
+- If defects are found, immediately remove the truck from service.
+- No one should be under any elevated part of a forklift.
+Source: OSHA 1910.178 (demo summary)

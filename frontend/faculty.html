@@ -1,0 +1,331 @@
+<!doctype html><meta charset="utf-8"><title>EHS – Faculty Dashboard</title>
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lebedev-vibe.css">
+
+<!-- Header -->
+<header class="appbar">
+  <div class="container" style="display:flex;justify-content:space-between;align-items:center;gap:16px;">
+    <div style="display:flex;align-items:center;gap:24px;">
+      <img src="https://ucm.calpoly.edu/sites/default/files/inline-images/logo_page_graphics-03%20%281%29.png" alt="Cal Poly" height="96" style="filter:brightness(0) invert(1)">
+      <div>
+        <div style="font-size:28px;font-weight:600;">👋 Hello, <strong id="helloName" style="text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;">—</strong></div>
+        <div style="font-size:20px;opacity:.8;margin-top:4px;font-style:italic;">Faculty Dashboard</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <button class="btn" onclick="logout()">Logout</button>
+    </div>
+  </div>
+</header>
+
+<!-- Navigation -->
+<div class="container">
+  <nav class="tabs" style="margin:24px 0;">
+    <a href="#overview" class="tab is-active" onclick="showSection('overview', this)">📊 Overview</a>
+    <a href="#students" class="tab" onclick="showSection('students', this)">👥 Students</a>
+    <a href="#reports" class="tab" onclick="showSection('reports', this)">📈 Reports</a>
+    <a href="#help" class="tab" onclick="showSection('help', this)">❓ Help</a>
+  </nav>
+</div>
+
+<!-- Main content -->
+<main class="container">
+  <!-- Overview Section -->
+  <section id="overview" class="content-section">
+    <div class="hero reveal">
+      <h1>📊 Faculty Overview</h1>
+      
+      <!-- Stats Grid -->
+      <div class="metrics" style="margin-top:24px;">
+        <div class="metric">
+          <div id="totalStudents" class="kpi">-</div>
+          <small>Total Students</small>
+        </div>
+        <div class="metric">
+          <div id="compliantStudents" class="kpi">-</div>
+          <small>Compliant</small>
+        </div>
+        <div class="metric">
+          <div id="pendingStudents" class="kpi">-</div>
+          <small>Pending</small>
+        </div>
+        <div class="metric">
+          <div class="health-status">
+            <div id="healthDot" class="health-dot-large"></div>
+          </div>
+          <small>Server Status</small>
+        </div>
+      </div>
+      
+      <!-- Quick Actions -->
+      <div style="margin-top:32px;">
+        <h3 style="font-size:var(--h3);font-weight:800;margin:0 0 16px 0;">Quick Actions</h3>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;">
+          <button class="btn" onclick="exportAllProgress()">📊 Export Progress</button>
+          <button class="btn-ghost" onclick="viewComplianceReport()">📋 Compliance Report</button>
+          <button class="btn-ghost" onclick="sendReminders()">📧 Send Reminders</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Students Section -->
+  <section id="students" class="content-section" style="display:none;">
+    <div class="hero reveal">
+      <h1>👥 Student Progress</h1>
+      <div id="studentsList" style="margin-top:24px;display:grid;gap:14px;"></div>
+    </div>
+  </section>
+
+  <!-- Reports Section -->
+  <section id="reports" class="content-section" style="display:none;">
+    <div class="hero reveal">
+      <h1>📈 Reports & Analytics</h1>
+      
+      <div class="grid2" style="margin-top:24px;">
+        <!-- Completion Rates -->
+        <div class="card">
+          <h3 style="font-weight:800;font-size:20px;margin:0 0 16px 0;">📊 Completion Rates</h3>
+          <div style="display:flex;gap:8px;align-items:end;height:120px;">
+            <div style="background:var(--brand);width:40px;height:60%;border-radius:4px;position:relative;">
+              <span style="position:absolute;bottom:-20px;font-size:12px;left:50%;transform:translateX(-50%);">Lab</span>
+            </div>
+            <div style="background:var(--ok);width:40px;height:80%;border-radius:4px;position:relative;">
+              <span style="position:absolute;bottom:-20px;font-size:12px;left:50%;transform:translateX(-50%);">Fire</span>
+            </div>
+            <div style="background:var(--warn);width:40px;height:45%;border-radius:4px;position:relative;">
+              <span style="position:absolute;bottom:-20px;font-size:12px;left:50%;transform:translateX(-50%);">Chem</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Overdue Training -->
+        <div class="card">
+          <h3 style="font-weight:800;font-size:20px;margin:0 0 16px 0;">⚠️ Overdue Training</h3>
+          <div id="overdueList" style="display:grid;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;background:var(--bg);border-radius:8px;">
+              <span style="font-weight:600;">John Smith</span>
+              <span class="badge high">Lab Safety</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;background:var(--bg);border-radius:8px;">
+              <span style="font-weight:600;">Sarah Johnson</span>
+              <span class="badge medium">Chemical</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Help Section -->
+  <section id="help" class="content-section" style="display:none;">
+    <div class="hero reveal">
+      <h1>❓ Faculty Resources</h1>
+      
+      <div style="margin-top:24px;display:grid;gap:16px;">
+        <div class="card">
+          <div style="font-size:32px;margin-right:16px;">📞</div>
+          <div style="flex:1;">
+            <h3 style="font-weight:800;font-size:18px;margin:0 0 8px 0;">EHS Support</h3>
+            <p style="margin:0 0 8px 0;color:var(--muted);">Environmental Health & Safety Office</p>
+            <p style="margin:0;"><strong>Phone:</strong> (805) 756-6661 | <strong>Email:</strong> ehs@calpoly.edu</p>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div style="font-size:32px;margin-right:16px;">📚</div>
+          <div style="flex:1;">
+            <h3 style="font-weight:800;font-size:18px;margin:0 0 8px 0;">Faculty Guide</h3>
+            <p style="margin:0 0 12px 0;color:var(--muted);">Complete guide for managing student safety training</p>
+            <button class="btn-ghost">Download Guide</button>
+          </div>
+        </div>
+        
+        <div class="card">
+          <div style="font-size:32px;margin-right:16px;">🎓</div>
+          <div style="flex:1;">
+            <h3 style="font-weight:800;font-size:18px;margin:0 0 8px 0;">Training Resources</h3>
+            <p style="margin:0 0 12px 0;color:var(--muted);">Additional materials and resources for faculty</p>
+            <button class="btn-ghost">View Resources</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- Footer -->
+<footer class="tech-footer">
+  <div class="tech-controls">
+    <div class="tech-status">
+      <div class="health-status">
+        <div class="health-dot-large healthy"></div>
+        <span class="health-label">Faculty Portal</span>
+      </div>
+    </div>
+    <div style="color:var(--muted);font-size:14px;">Faculty Dashboard v2+</div>
+  </div>
+</footer>
+
+<script src="./ehs_api.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const uid = new URLSearchParams(location.search).get('id') || 'faculty1';
+
+function showSection(sectionId, tabEl) {
+  // Hide all sections
+  document.querySelectorAll('.content-section').forEach(section => {
+    section.style.display = 'none';
+  });
+  
+  // Show target section
+  document.getElementById(sectionId).style.display = 'block';
+  
+  // Update tab states
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.classList.remove('is-active');
+  });
+  tabEl.classList.add('is-active');
+}
+
+function logout() {
+  if(confirm('Are you sure you want to logout?')) {
+    window.location.href = './index.html';
+  }
+}
+
+function updateHealthDot(isHealthy) {
+  const dot = $('#healthDot');
+  if(dot) {
+    dot.className = `health-dot-large ${isHealthy ? 'healthy' : 'unhealthy'}`;
+    dot.title = `Last sync: ${new Date().toLocaleTimeString()}`;
+  }
+}
+
+async function loadFacultyData() {
+  try {
+    updateHealthDot(true);
+    
+    // Load faculty info
+    const faculty = await ehs.getUser(uid);
+    $('#helloName').textContent = faculty.name || uid;
+    
+    // Load all users to show students
+    const users = await ehs.getUsersList();
+    const students = users.users.filter(u => u.role && !u.role.toLowerCase().includes('faculty') && !u.role.toLowerCase().includes('admin'));
+    
+    // Calculate stats
+    let compliant = 0;
+    let pending = 0;
+    
+    // Load progress for each student (simplified for demo)
+    for (let student of students.slice(0, 5)) { // Limit for demo
+      try {
+        const progress = await ehs.progress(student.id);
+        const completed = progress.items?.filter(i => i.status === 'completed').length || 0;
+        const total = progress.items?.length || 0;
+        
+        if (total > 0 && completed === total) {
+          compliant++;
+        } else {
+          pending++;
+        }
+      } catch (e) {
+        pending++;
+      }
+    }
+    
+    // Update stats
+    $('#totalStudents').textContent = students.length;
+    $('#compliantStudents').textContent = compliant;
+    $('#pendingStudents').textContent = pending;
+    
+    // Render students list
+    renderStudentsList(students.slice(0, 10)); // Show first 10 for demo
+    
+  } catch (e) {
+    console.log('API not available, using demo data');
+    updateHealthDot(false);
+    loadDemoData();
+  }
+}
+
+function renderStudentsList(students) {
+  const container = $('#studentsList');
+  
+  if (!students.length) {
+    container.innerHTML = '<div style="text-align:center;color:var(--muted);padding:32px;">No students found</div>';
+    return;
+  }
+  
+  container.innerHTML = students.map(student => `
+    <div class="card" style="cursor:pointer;" onclick="viewStudentProgress('${student.id}')">
+      <div style="font-size:24px;margin-right:16px;">👤</div>
+      <div style="flex:1;">
+        <h3 style="font-weight:800;font-size:18px;margin:0 0 4px 0;">${student.id}</h3>
+        <p style="color:var(--muted);margin:0 0 8px 0;">${student.role || 'Student'}</p>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:12px;color:var(--muted);">${student.location || 'Unknown Location'}</span>
+          <div class="progress" style="flex:1;height:6px;">
+            <div style="width:${Math.random() * 100}%;"></div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-ghost" onclick="event.stopPropagation();viewStudentProgress('${student.id}')">View</button>
+    </div>
+  `).join('');
+}
+
+function loadDemoData() {
+  $('#helloName').textContent = 'Dr. Faculty';
+  $('#totalStudents').textContent = '24';
+  $('#compliantStudents').textContent = '18';
+  $('#pendingStudents').textContent = '6';
+  
+  // Demo students
+  const demoStudents = [
+    { id: 'svetlana', role: 'Research Assistant', location: 'San Luis Obispo' },
+    { id: 'john_smith', role: 'Lab Student', location: 'San Luis Obispo' },
+    { id: 'sarah_j', role: 'Graduate Student', location: 'San Luis Obispo' }
+  ];
+  
+  renderStudentsList(demoStudents);
+}
+
+function viewStudentProgress(studentId) {
+  window.open(`./learner.html?id=${encodeURIComponent(studentId)}`, '_blank');
+}
+
+function exportAllProgress() {
+  alert('Exporting all student progress...');
+}
+
+function viewComplianceReport() {
+  alert('Opening compliance report...');
+}
+
+function sendReminders() {
+  alert('Sending training reminders to students...');
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  loadFacultyData();
+  
+  // Reveal animations
+  const obs = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add('is-in')), {threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+  
+  // Health check
+  setInterval(async () => {
+    try {
+      await fetch('/health');
+      updateHealthDot(true);
+    } catch(e) {
+      updateHealthDot(false);
+    }
+  }, 10000);
+});
+</script>

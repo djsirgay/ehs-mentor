@@ -1,0 +1,51 @@
+{
+  "roles": {
+    "Forklift Operator": {
+      "aliases": [
+        "Forklift driver",
+        "PIT operator",
+        "Warehouse PIT"
+      ],
+      "location_prefix": "US-",
+      "default_tags": [
+        "heavy_equipment",
+        "preoperation_check",
+        "refueling"
+      ],
+      "equipment_tags": [
+        "forklift"
+      ],
+      "required_modules": [
+        "forklift_preop_osha_v1",
+        "ppe_basics_osha_v1"
+      ],
+      "optional_modules": [
+        "forklift_refuel_osha_v1",
+        "hazcom_sds_osha_v1"
+      ]
+    },
+    "Lab Technician": {
+      "aliases": [
+        "Lab tech",
+        "Research technician",
+        "Technician - lab"
+      ],
+      "location_prefix": "US-",
+      "default_tags": [
+        "biosafety",
+        "ppe",
+        "chemicals"
+      ],
+      "equipment_tags": [
+        "biosafety_cabinet",
+        "chemicals"
+      ],
+      "required_modules": [
+        "bsc_usage_cdc_v1",
+        "hazcom_sds_osha_v1",
+        "ppe_basics_osha_v1"
+      ],
+      "optional_modules": []
+    }
+  }
+}

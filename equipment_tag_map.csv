@@ -1,0 +1,4 @@
+equipment_tag,adds_risk_tags
+forklift,"heavy_equipment;refueling"
+biosafety_cabinet,"biosafety;airflow"
+chemicals,"chemicals;sds;spill_response"

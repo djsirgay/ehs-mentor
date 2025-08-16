@@ -1,0 +1,842 @@
+<!doctype html><meta charset="utf-8"><title>EHS – Learner Dashboard</title>
+<link rel="icon" href="./calpoly-logo_ico.png" type="image/png">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lebedev-vibe.css">
+<link rel="stylesheet" href="./styles.css">
+<style>
+/* ==== Horizontal Pill ==== */
+:root {
+  --ehs-bg: #ffffff;
+  --ehs-text: #1a1f1c;
+  --ehs-muted: #6b6f6c;
+  --ehs-track: #e9efe8;
+  --ehs-accent: #2a7d2e;
+  --ehs-accent-2: #66d36f;
+  --ehs-shadow: 0 6px 16px rgba(21, 94, 21, .15);
+}
+
+.ehs-bar {
+  max-width: 620px;
+  background: var(--ehs-bg);
+  border-radius: 24px;
+  padding: 14px 16px;
+  box-shadow: var(--ehs-shadow);
+  border: 1px solid #e7ece7;
+  display: grid;
+  gap: 10px;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, sans-serif;
+}
+.ehs-bar__head {
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.ehs-bar__title { font-weight: 700; letter-spacing: .2px; }
+.ehs-bar__percent { font-weight: 800; }
+.ehs-bar__track {
+  position: relative;
+  height: 12px;
+  background: var(--ehs-track);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.ehs-bar__fill {
+  position: absolute; inset: 0 auto 0 0;
+  width: 0%;
+  background: linear-gradient(90deg, var(--ehs-accent), var(--ehs-accent-2));
+  border-radius: inherit;
+  transition: width .8s cubic-bezier(.22,1,.36,1);
+}
+.ehs-bar__meta {
+  display: flex; gap: 16px; color: var(--ehs-muted);
+  font-size: 12px; letter-spacing: .2px;
+}
+
+@media (max-width: 480px){
+  .ehs-bar { padding: 12px; }
+}
+
+/* ==== Training Cards (Accordion Style) ==== */
+.training-card {
+  background: #ffe3a3;
+  border-radius: 24px;
+  padding: 18px;
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+  transition: transform .18s ease;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.training-card:hover {
+  transform: translateY(-1px);
+}
+
+.training-card.high {
+  background: #ffc0d3;
+}
+
+.training-card.medium {
+  background: #ffe3a3;
+}
+
+.training-card.low {
+  background: #cfe0ff;
+}
+
+.micro-card {
+  background: #e8f5e8;
+}
+
+.full-training {
+  background: #ffe3a3;
+}
+
+.training-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.training-title {
+  font-weight: 800;
+  font-size: 26px;
+  margin: 0 0 8px 0;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.training-icon {
+  font-size: 32px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.training-desc {
+  margin: 8px 0 16px 0;
+  line-height: 1.5;
+  color: rgba(0,0,0,.7);
+  font-size: 17px;
+}
+
+.training-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+  font-size: 15px;
+}
+
+.training-action {
+  flex-shrink: 0;
+  margin-left: auto;
+  align-self: center;
+}
+
+.training-btn, .btn, .btn-ghost, .btn-tech {
+  background: #2a7d2e;
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+  padding: 12px 20px;
+  font-weight: 700;
+  font-size: 16px;
+  text-align: center;
+  min-width: 120px;
+  transition: transform .18s ease, box-shadow .18s ease;
+  cursor: pointer;
+}
+
+.btn-ghost {
+  background: #fff;
+  color: #2a7d2e;
+  border: 2px solid #2a7d2e;
+}
+
+.btn-tech {
+  background: #ff6b6b;
+  color: #fff;
+}
+
+.training-btn:hover {
+  background: #1e5a22;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(42,125,46,.3);
+}
+
+</style>
+
+
+
+<!-- Header -->
+<header class="appbar" style="border-radius: 0 0 24px 24px;">
+  <div class="container" style="display:flex;justify-content:space-between;align-items:center;gap:16px;">
+    <div style="display:flex;align-items:center;gap:24px;">
+      <img src="https://ucm.calpoly.edu/sites/default/files/inline-images/logo_page_graphics-03%20%281%29.png" alt="Cal Poly" height="96" style="filter:brightness(0) invert(1)">
+      <div>
+        <div style="font-size:28px;font-weight:600;">👋 Hello, <strong id="helloName" style="text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:4px;cursor:pointer;" onclick="showProfile()">—</strong></div>
+        <div style="font-size:20px;opacity:.8;margin-top:4px;font-style:italic;" id="dailyMessage">—</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;">
+
+      <div style="display:flex;gap:8px;">
+        <button class="btn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Main content -->
+<main>
+  <!-- Overview Section -->
+  <section id="overview" class="container">
+    <div class="grid2">
+      <!-- Progress Block -->
+      <div class="hero reveal" style="box-shadow: 0 20px 40px rgba(16,24,40,.18) !important; border-radius: 32px !important;">
+        <h1 style="font-size: 48px; font-weight: 800;">📈 Progress & History</h1>
+        
+        <!-- EHS Progress — Horizontal Pill -->
+        <div style="margin-top:24px;">
+        <div class="ehs-bar" id="progressBar" style="--value:43; --done:3; --total:7;">
+          <div class="ehs-bar__head">
+            <span class="ehs-bar__title">Training Progress</span>
+            <span class="ehs-bar__percent">43%</span>
+          </div>
+
+          <div class="ehs-bar__track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="43">
+            <span class="ehs-bar__fill"></span>
+          </div>
+
+          <div class="ehs-bar__meta">
+            <span><strong class="ehs-bar__done">3</strong> Completed</span>
+            <span><strong class="ehs-bar__total">7</strong> Total</span>
+          </div>
+        </div>
+        </div>
+        
+        <div style="display:flex;gap:12px;margin-top:32px;">
+          <button class="btn-ghost" id="viewHistoryBtn" style="flex:1;">📅 Training History</button>
+          <button class="btn-ghost" id="exportHistoryBtn" style="flex:1;">📄 Progress Report</button>
+        </div>
+      </div>
+      
+      <!-- Next Action Block -->
+      <div class="hero reveal" style="background:#1edc3b !important; color:white !important; border-radius: 32px !important;">
+        <h1 style="font-size: 46px; font-weight: 800;">🔔 Next Action Required</h1>
+        <div id="nextModuleDetails" style="margin:24px 0;">
+          <h3 style="margin:0 0 12px;font-weight:800;font-size:20px;" id="nextModuleTitle">—</h3>
+          <p style="opacity:.85;margin:0 0 16px;font-size:15px;line-height:1.5;" id="nextModuleDesc">Continue your safety training to stay compliant with Cal Poly requirements.</p>
+          <div style="display:flex;gap:12px;margin:0 0 24px;align-items:center;">
+            <span class="badge medium" id="nextModulePriority">MEDIUM</span>
+            <span style="font-size:13px;opacity:.7;" id="nextModuleDue">Due: 2 days</span>
+          </div>
+        </div>
+        <button class="btn" id="startBtn" style="background:#ff8533 !important; color:white !important; border-radius:16px !important; padding:14px 20px !important; border:none !important; box-shadow:none !important;">Start Next Module</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Training Sections -->
+  <section id="training" class="container" style="margin-top:-80px;">
+    <div class="hero reveal" style="border-radius: 32px;">
+      <h1 style="font-size: 48px; font-weight: 800;">📚 All Training</h1>
+      <div style="margin-top:24px;">
+        <div id="allTrainingList">
+          <!-- Динамически заполняется -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Help Section -->
+  <section id="help" class="container" style="margin-top:-100px;">
+    <div class="hero reveal" style="border-radius: 32px;">
+      <h1 style="font-size: 48px; font-weight: 800;">📱 Help & Support</h1>
+      <div style="margin-top:24px;">
+        <div class="training-card reveal" style="background: #fff;">
+          <div class="training-content">
+            <h3 class="training-title">
+              Contact EHS Office
+            </h3>
+            <p class="training-desc">Environmental Health & Safety Office support</p>
+            <div class="training-meta">
+              <span>Phone: (805) 756-6661</span>
+              <span>Email: ehs@calpoly.edu</span>
+            </div>
+          </div>
+          <div class="training-action">
+            <button class="training-btn" onclick="window.open('mailto:ehs@calpoly.edu')">Contact</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Social Media -->
+  <div style="text-align: center; padding: 40px 0;">
+    <div style="display: flex; justify-content: center; gap: 24px; flex-wrap: wrap;">
+      <a href="https://www.instagram.com/calpoly/" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 70px; height: 70px; background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%); border-radius: 50%; color: white; text-decoration: none; transition: transform 0.3s ease; box-shadow: 0 8px 20px rgba(0,0,0,0.15);" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+      </a>
+      <a href="https://x.com/calpoly" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 70px; height: 70px; background: #000000; border-radius: 50%; color: white; text-decoration: none; transition: transform 0.3s ease; box-shadow: 0 8px 20px rgba(0,0,0,0.15);" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      </a>
+      <a href="https://www.facebook.com/CalPolySLO" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 70px; height: 70px; background: #1877f2; border-radius: 50%; color: white; text-decoration: none; transition: transform 0.3s ease; box-shadow: 0 8px 20px rgba(0,0,0,0.15);" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+      </a>
+      <a href="https://www.linkedin.com/school/california-polytechnic-state-university-san-luis-o/" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 70px; height: 70px; background: #0077b5; border-radius: 50%; color: white; text-decoration: none; transition: transform 0.3s ease; box-shadow: 0 8px 20px rgba(0,0,0,0.15);" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+      </a>
+      <a href="https://www.youtube.com/user/CalPolySLO" target="_blank" style="display: flex; align-items: center; justify-content: center; width: 70px; height: 70px; background: #ff0000; border-radius: 50%; color: white; text-decoration: none; transition: transform 0.3s ease; box-shadow: 0 8px 20px rgba(0,0,0,0.15);" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+      </a>
+    </div>
+  </div>
+</main>
+
+<!-- Technical Controls -->
+<footer class="tech-footer">
+  <div class="tech-controls">
+    <div class="tech-status">
+      <div class="health-status">
+        <div id="healthDot" class="health-dot-large"></div>
+        <span class="health-label">Server Status</span>
+      </div>
+    </div>
+    <button id="resetBtn" class="btn-tech" onclick="resetProgress()">Reset Progress</button>
+  </div>
+  <div style="text-align:center;padding:20px;color:#666;font-size:14px;border-top:1px solid #eee;margin-top:20px;">
+    <a href="https://www.sergey-ulyanov.pro" target="_blank" style="color:#2a7d2e;text-decoration:none;font-weight:bold;">Sergey Ulyanov</a>, AI Matchmakers Team<br>
+    Digital Transformation Hub (DxHub) × Amazon Web Services (AWS) — August 2025<br>
+    📧 ulyanoow@gmail.com | 📱 (310) 713-7738
+  </div>
+</footer>
+
+
+
+<script src="./ehs_api.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const uid = new URLSearchParams(location.search).get('id') || 'svetlana';
+const pretty = id => id.replace(/_/g,' ').replace(/\b\w/g,s=>s.toUpperCase());
+const risk = id => /forklift|chem|biosafety|heavy_equipment|chemicals/.test(id) ? 'High':'Medium';
+let currentPlan = null;
+
+const dailyMessages = [
+  '✨ A perfect day to make yourself safer',
+  '🛡️ Safety starts with you',
+  '🎯 Every module makes you an expert',
+  '🌟 Knowledge is your best protection',
+  '🚀 Keep growing safely',
+  '💪 Strength through safety knowledge',
+  '🔥 Ready for new safety challenges',
+  '⚡ Safety energy is with you'
+];
+
+function updateDailyMessage() {
+  const index = Math.floor(Math.random() * dailyMessages.length);
+  $('#dailyMessage').textContent = dailyMessages[index];
+}
+
+// Utilities
+function toast(msg, type = 'warn') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function getIcon(mid) {
+  if(/lab|safety/.test(mid)) return '⚠️';
+  if(/chem/.test(mid)) return '🧪';
+  if(/fire/.test(mid)) return '🔥';
+  if(/machine|shop|forklift/.test(mid)) return '🔧';
+  return '📋';
+}
+
+function updateHealthDot(isHealthy) {
+  const dot = $('#healthDot');
+  if(dot) {
+    dot.className = `health-dot-large ${isHealthy ? 'healthy' : 'unhealthy'}`;
+    dot.title = `Last sync: ${new Date().toLocaleTimeString()}`;
+  }
+}
+
+function showProfile() {
+  alert('Profile settings would open here');
+}
+
+function toggleNotifications() {
+  const dropdown = $('#notificationsDropdown');
+  dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+}
+
+function updateNotifications(assigned, done) {
+  const pending = assigned.filter(item => !done.has(item.module_id));
+  const count = pending.length;
+  
+  $('#notificationCount').textContent = count;
+  $('#notificationCount').style.display = count > 0 ? 'inline' : 'none';
+  
+  const list = $('#notificationsList');
+  if (!pending.length) {
+    list.innerHTML = '<div class="notification-empty">🎉 No pending trainings</div>';
+    return;
+  }
+  
+  list.innerHTML = pending.slice(0, 5).map((item, i) => {
+    const isOverdue = i === 0;
+    const icon = isOverdue ? '⚠️' : '🔔';
+    const title = item.title || pretty(item.module_id);
+    const status = isOverdue ? 'Overdue' : 'Due Soon';
+    
+    return `
+      <div class="notification-item ${isOverdue ? 'overdue' : 'due-soon'}" onclick="completeAndRefresh('${item.module_id}')">
+        <div class="notification-icon">${icon}</div>
+        <div class="notification-content">
+          <div class="notification-title">${title}</div>
+          <div class="notification-status">${status}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// Close notifications when clicking outside
+document.addEventListener('click', function(e) {
+  const dropdown = $('#notificationsDropdown');
+  const btn = $('.notifications-btn');
+  if (dropdown && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+    dropdown.style.display = 'none';
+  }
+});
+
+function logout() {
+  if(confirm('Are you sure you want to logout?')) {
+    window.location.href = './index.html';
+  }
+}
+
+async function loadAll(){
+  try {
+    updateHealthDot(true);
+    
+    const u = await ehs.getUser(uid);
+    const prog = await ehs.progress(uid);
+    const items = prog.items || [];
+    const done = new Set(items.filter(i=>i.status==='completed').map(i=>i.module_id));
+    const assigned = items.filter(i=>i.status==='assigned');
+
+    $('#helloName').textContent = u.name || uid;
+    updateDailyMessage();
+
+    // Render all training items in one list
+    renderAllTrainingItems('#allTrainingList', assigned, done);
+    updateNotifications(assigned, done);
+
+    const total = items.length;
+    const completed = done.size;
+    const percent = total ? Math.round(completed/total*100) : 0;
+    
+    if (window.setEhsProgress) {
+      setEhsProgress('#progressBar', percent, {done: completed, total: total});
+    }
+    
+    // Update Capsule Rail
+    const capsules = items.map(item => ({
+      id: (item.title || pretty(item.module_id)).substring(0, 12),
+      status: item.status
+    }));
+    if (window.setCaps) {
+      setCaps('#rail1', capsules);
+    }
+
+    const next = assigned.find(item => !done.has(item.module_id));
+    if(next){
+      const title = next.title || pretty(next.module_id);
+      const priority = next.priority || 'medium';
+      const isOverdue = Math.random() > 0.7;
+      
+      $('#nextModuleTitle').textContent = title;
+      $('#nextModuleDesc').textContent = next.description || 'Essential safety training for your role';
+      $('#nextModulePriority').textContent = priority.toUpperCase();
+      $('#nextModulePriority').className = `badge ${priority}`;
+      $('#nextModuleDue').textContent = `Due: ${isOverdue ? 'Overdue' : '2 days'}`;
+      $('#nextModuleDue').style.color = isOverdue ? 'var(--danger)' : '';
+      
+      $('#startBtn').textContent = `Start: ${title}`;
+      $('#startBtn').disabled = false;
+      $('#startBtn').onclick = ()=> completeAndRefresh(next.module_id);
+    } else {
+      $('#nextModuleTitle').textContent = 'All Training Complete!';
+      $('#nextModuleDesc').textContent = 'You are fully compliant with all safety requirements';
+      $('#nextModulePriority').style.display = 'none';
+      $('#nextModuleDue').style.display = 'none';
+      $('#startBtn').textContent = 'All done 🎉';
+    }
+  } catch(e) {
+    console.log('API not available, using demo data');
+    updateHealthDot(false);
+    loadDemoData();
+  }
+}
+
+function loadDemoData() {
+  $('#helloName').textContent = 'Svetlana Alekseevna';
+  updateDailyMessage();
+  
+  if (window.setEhsProgress) {
+    setEhsProgress('#progressBar', 43, {done: 3, total: 7});
+  }
+  
+
+  
+  $('#nextModuleTitle').textContent = 'Laboratory Safety Fundamentals';
+  $('#nextModuleDesc').textContent = 'Essential safety protocols for laboratory environments';
+  $('#nextModulePriority').textContent = 'HIGH';
+  $('#nextModulePriority').className = 'badge high';
+  $('#nextModuleDue').textContent = 'Due: Overdue';
+  $('#nextModuleDue').style.color = 'var(--danger)';
+  
+  $('#startBtn').textContent = 'Start Training';
+  $('#startBtn').disabled = false;
+  $('#startBtn').onclick = () => alert('Demo: Starting Lab Safety Training');
+  
+  // Demo notifications
+  $('#notificationCount').textContent = '2';
+  $('#notificationCount').style.display = 'inline';
+  $('#notificationsList').innerHTML = `
+    <div class="notification-item overdue" onclick="alert('Demo: Starting Lab Safety')">
+      <div class="notification-icon">⚠️</div>
+      <div class="notification-content">
+        <div class="notification-title">Lab Safety Training</div>
+        <div class="notification-status">Overdue</div>
+      </div>
+    </div>
+    <div class="notification-item due-soon" onclick="alert('Demo: Starting Machine Shop Safety')">
+      <div class="notification-icon">🔔</div>
+      <div class="notification-content">
+        <div class="notification-title">Machine Shop Safety</div>
+        <div class="notification-status">Due Soon</div>
+      </div>
+    </div>`;
+  
+  // Demo training lists with mixed types
+  $('#allTrainingList').innerHTML = `
+    <div class="training-card full-training reveal">
+      <div class="training-content">
+        <h3 class="training-title">
+          <span class="training-icon">⚠️</span>
+          Lab Safety Training
+        </h3>
+        <p class="training-desc">Essential safety protocols for laboratory work</p>
+        <div class="training-meta">
+          <span>Type: Full Training</span>
+          <span class="badge high">HIGH</span>
+          <span>Due: Overdue</span>
+        </div>
+      </div>
+      <div class="training-action">
+        <button class="training-btn" onclick="alert('Demo: Starting Lab Safety')">Start<br>Training</button>
+      </div>
+    </div>
+    
+    <div class="training-card micro-card reveal">
+      <div class="training-content">
+        <h3 class="training-title">
+          <span class="training-icon">🧪</span>
+          Chemical Handling — Micro
+        </h3>
+        <p class="training-desc">Quick 5-minute safety module</p>
+        <div class="training-meta">
+          <span>Type: Micro Learning</span>
+          <span>Duration: 5 min</span>
+        </div>
+      </div>
+      <div class="training-action">
+        <button class="training-btn" onclick="alert('Demo: Quick Learn Chemical Handling')">Quick<br>Learn</button>
+      </div>
+    </div>
+    
+    <div class="training-card full-training reveal">
+      <div class="training-content">
+        <h3 class="training-title">
+          <span class="training-icon">🧪</span>
+          Chemical Handling Safety
+        </h3>
+        <p class="training-desc">Safe handling and storage of hazardous chemicals</p>
+        <div class="training-meta">
+          <span>Type: Full Training</span>
+          <span class="badge medium">MEDIUM</span>
+          <span>Due: 2 days</span>
+        </div>
+      </div>
+      <div class="training-action">
+        <button class="training-btn" onclick="alert('Demo: Starting Chemical Safety')">Start<br>Training</button>
+      </div>
+    </div>
+    
+    <div class="training-card full-training reveal">
+      <div class="training-content">
+        <h3 class="training-title">
+          <span class="training-icon">🔥</span>
+          Fire Safety & Emergency Procedures
+        </h3>
+        <p class="training-desc">Fire prevention and emergency evacuation procedures</p>
+        <div class="training-meta">
+          <span>Type: Full Training</span>
+          <span class="badge low">LOW</span>
+          <span>Due: 5 days</span>
+        </div>
+      </div>
+      <div class="training-action">
+        <button class="training-btn" onclick="alert('Demo: Starting Fire Safety')">Start<br>Training</button>
+      </div>
+    </div>`;
+}
+
+
+
+
+function renderAllTrainingItems(sel, items, done){
+  const host=$(sel);
+  if (!items.length) {
+    host.innerHTML = '<p style="color:var(--ehs-muted);text-align:center;padding:32px;">🎉 All training completed!</p>';
+    return;
+  }
+  
+  // Mix full and micro trainings
+  const allItems = [...items, ...items.slice(0, 2).map(item => ({...item, isMicro: true}))]; // Add first 2 as micro versions
+  
+  host.innerHTML = allItems.map(item=>{
+    const isCompleted = done.has(item.module_id);
+    const priority = item.priority || 'medium';
+    const icon = getIcon(item.module_id);
+    const title = item.title || pretty(item.module_id);
+    const description = item.description || 'Essential safety training for your role';
+    const isOverdue = Math.random() > 0.7;
+    
+    if (item.isMicro) {
+      return `
+        <div class="training-card micro-card reveal">
+          <div class="training-content">
+            <h3 class="training-title">
+              <span class="training-icon">${icon}</span>
+              ${title} — Micro
+            </h3>
+            <p class="training-desc">Quick 5-minute safety module</p>
+            <div class="training-meta">
+              <span>Type: Micro Learning</span>
+              <span>Duration: 5 min</span>
+            </div>
+          </div>
+          <div class="training-action">
+            <button class="training-btn" onclick="completeAndRefresh('${item.module_id}')" ${isCompleted ? 'disabled' : ''}>
+              ${isCompleted ? '✓ Done' : 'Quick<br>Learn'}
+            </button>
+          </div>
+        </div>`;
+    } else {
+      return `
+        <div class="training-card full-training reveal">
+          <div class="training-content">
+            <h3 class="training-title">
+              <span class="training-icon">${icon}</span>
+              ${title}
+            </h3>
+            <p class="training-desc">${description}</p>
+            <div class="training-meta">
+              <span>Type: Full Training</span>
+              <span class="badge ${priority}">${priority.toUpperCase()}</span>
+              <span>Due: ${isOverdue ? 'Overdue' : '2 days'}</span>
+            </div>
+          </div>
+          <div class="training-action">
+            <button class="training-btn" onclick="completeAndRefresh('${item.module_id}')" ${isCompleted ? 'disabled' : ''}>
+              ${isCompleted ? '✓ Done' : 'Start<br>Training'}
+            </button>
+          </div>
+        </div>`;
+    }
+  }).join('');
+  
+  document.querySelectorAll('.reveal').forEach(el => {
+    if (window.obs) window.obs.observe(el);
+  });
+}
+
+function explainWhy(id, plan){
+  const tags = new Set(plan.matched_tags||[]);
+  if(tags.has('heavy_equipment') && /forklift/.test(id)) return 'Risk: heavy_equipment (OSHA 1910.178)';
+  if(tags.has('chemicals') && /chem|hazcom/.test(id))   return 'Risk: chemicals (OSHA 1910.1200)';
+  if(tags.has('biosafety') && /biosafety|bsc/.test(id)) return 'Risk: biosafety (CDC BMBL 6th)';
+  return 'Role baseline';
+}
+function showWhy(id){ alert(`${pretty(id)}\nReason: ${id}`); }
+
+async function completeAndRefresh(moduleId){
+  const btn = event.target;
+  const originalText = btn.textContent;
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+  try {
+    await ehs.complete(uid, moduleId, 'completed');
+    btn.classList.add('success');
+    setTimeout(() => loadAll(), 300);
+  } catch(e) {
+    btn.textContent = 'Error';
+    btn.style.background = '#e74c3c';
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.disabled = false;
+      btn.style.background = '';
+    }, 2000);
+  }
+}
+
+async function resetProgress() {
+  if (!confirm('Are you sure you want to reset all progress? This action cannot be undone.')) {
+    return;
+  }
+  
+  const btn = $('#resetBtn');
+  const originalText = btn.textContent;
+  btn.textContent = 'Resetting...';
+  btn.disabled = true;
+  
+  try {
+    const response = await fetch(`/progress/${uid}/reset`, { method: 'DELETE' });
+    if (response.ok) {
+      toast('Progress reset successfully!', 'success');
+      setTimeout(() => loadAll(), 500);
+    } else {
+      throw new Error('Reset failed');
+    }
+  } catch(e) {
+    toast('Error resetting progress', 'error');
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
+  }
+}
+
+
+// History functions
+function viewHistory() {
+  ehs.progress(uid).then(prog => {
+    const items = prog.items || [];
+    const historyHtml = items.map(item => {
+      const date = new Date(item.ts * 1000).toLocaleDateString();
+      const statusIcon = item.status === 'completed' ? '✅' : '⏳';
+      const title = item.title || pretty(item.module_id);
+      return `<div class="history-item">${statusIcon} ${title} - ${item.status} (${date})</div>`;
+    }).join('');
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>История обучения</h3>
+          <button onclick="this.closest('.modal-overlay').remove()" class="modal-close">×</button>
+        </div>
+        <div class="modal-body">
+          ${historyHtml || '<div class="history-empty">Нет данных об обучении</div>'}
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+  }).catch(e => {
+    toast('Ошибка загрузки истории', 'error');
+  });
+}
+
+function exportHistory() {
+  ehs.progress(uid).then(prog => {
+    const rows = [['module_id','status','ts'], ...(prog.items||[]).map(i=>[i.module_id,i.status,i.ts])];
+    const csv = rows.map(r=>r.join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = Object.assign(document.createElement('a'), {href:url, download:`${uid}_progress.csv`});
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    toast('История экспортирована!', 'success');
+  }).catch(e => {
+    toast('Ошибка экспорта', 'error');
+  });
+}
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Initialize EHS Progress Bar
+  (function initEhsBar(){
+    const el = document.getElementById('progressBar');
+    if (!el) return;
+    const v  = Number(el.style.getPropertyValue('--value') || el.dataset.value || 0);
+    const fill = el.querySelector('.ehs-bar__fill');
+    const now  = el.querySelector('[role="progressbar"]');
+
+    requestAnimationFrame(() => { fill.style.width = v + '%'; });
+    el.querySelector('.ehs-bar__percent').textContent = Math.round(v) + '%';
+    now.setAttribute('aria-valuenow', Math.round(v));
+    el.querySelector('.ehs-bar__done').textContent  = el.style.getPropertyValue('--done')  || '—';
+    el.querySelector('.ehs-bar__total').textContent = el.style.getPropertyValue('--total') || '—';
+
+    window.setEhsProgress = (selector, value, meta={}) => {
+      const root = document.querySelector(selector);
+      if(!root) return;
+      root.style.setProperty('--value', value);
+      root.querySelector('.ehs-bar__fill').style.width = value + '%';
+      root.querySelector('.ehs-bar__percent').textContent = Math.round(value) + '%';
+      root.querySelector('[role="progressbar"]').setAttribute('aria-valuenow', Math.round(value));
+      if(meta.done)  root.querySelector('.ehs-bar__done').textContent  = meta.done;
+      if(meta.total) root.querySelector('.ehs-bar__total').textContent = meta.total;
+    };
+  })();
+  
+  // Initialize Capsule Rail
+  (function initCaps(){
+    window.setCaps = (sel, items)=>{
+      const root = document.querySelector(sel); 
+      if(!root) return;
+      root.innerHTML=''; 
+      items.forEach(m=>{
+        const el = document.createElement('div');
+        el.className = `cap ${m.status}`;
+        el.innerHTML = `<span class="dot"></span>${m.id}`;
+        el.title = `${m.id} — ${m.status.toUpperCase()}`;
+        root.appendChild(el);
+      });
+    };
+  })();
+  
+  // Анимации появления
+  window.obs = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add('is-in')), {threshold:.12});
+  document.querySelectorAll('.card,.metric,.ac,.reveal').forEach(el => window.obs.observe(el));
+  
+  // History buttons
+  const viewHistoryBtn = $('#viewHistoryBtn');
+  const exportHistoryBtn = $('#exportHistoryBtn');
+  if (viewHistoryBtn) viewHistoryBtn.onclick = viewHistory;
+  if (exportHistoryBtn) exportHistoryBtn.onclick = exportHistory;
+  
+  loadAll();
+  
+
+  
+  // Health check every 10 seconds
+  setInterval(async () => {
+    try {
+      await fetch('/health');
+      updateHealthDot(true);
+    } catch(e) {
+      updateHealthDot(false);
+    }
+  }, 10000);
+});
+
+
+
+
+</script>

@@ -1,0 +1,10 @@
+id: forklift_preop_osha_v1
+title: Forklift — Pre-Operation (OSHA 1910.178)
+regulators: ["OSHA"]
+roles: ["Forklift Operator"]
+location: ["US"]
+risk_tags: ["heavy_equipment","preoperation_check"]
+prerequisites: []
+length_min: 6
+version: "1.0"
+source: policies/osha_1910_178_preop.txt

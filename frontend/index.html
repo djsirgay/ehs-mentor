@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EHS Training System - Login</title>
+  <link rel="icon" href="./calpoly-logo_ico.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="lebedev-vibe.css">
+  <style>
+    .role-btn {
+      background: #fff;
+      border: 2px solid transparent;
+      border-radius: 24px;
+      padding: 18px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      cursor: pointer;
+      transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+    .role-btn:hover {
+      transform: translateY(-2px);
+    }
+    .role-btn.active {
+      border-color: #2a7d2e;
+      background: rgba(42,125,46,.05);
+    }
+    .login-section {
+      margin-top: 24px;
+    }
+    .login-section label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--ink);
+    }
+    .login-section input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 16px;
+      margin-bottom: 16px;
+      transition: border-color var(--speed);
+    }
+    .login-section input:focus {
+      outline: none;
+      border-color: var(--brand);
+    }
+    .password-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+    .forgot-link {
+      color: var(--brand);
+      font-size: 14px;
+      text-decoration: underline;
+    }
+    .login-message {
+      padding: 12px;
+      border-radius: 8px;
+      margin: 16px 0;
+      text-align: center;
+      font-weight: 600;
+    }
+    .login-message.success {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .login-message.error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .login-footer {
+      text-align: center;
+      margin-top: 24px;
+      color: var(--muted);
+    }
+    .login-footer a {
+      color: var(--brand);
+      text-decoration: underline;
+    }
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: #fff;
+      border-radius: var(--r-lg);
+      padding: 24px;
+      max-width: 480px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--muted);
+    }
+    .form-row {
+      margin-bottom: 16px;
+    }
+    .form-row label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .form-row input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 12px;
+      font-size: 16px;
+    }
+    .register-btn {
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 24px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+    }
+  </style>
+</head>
+<body style="background: var(--bg); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px;">
+  <div class="hero" style="max-width: 480px; width: 100%; margin: 0 auto; border-radius: 32px; box-shadow: 0 20px 40px rgba(16,24,40,.18);">
+    <!-- Header with Logo -->
+    <div style="text-align: center; margin-bottom: 32px;">
+      <img src="./calpoly-logo.png" alt="Cal Poly Logo" style="height: 80px; margin-bottom: 16px;">
+      <h1 style="font-size: var(--h2); font-weight: 800; margin: 0 0 8px 0;">EHS Training System</h1>
+      <p style="color: var(--muted); font-size: var(--lead); margin: 0;">Environmental Health & Safety</p>
+    </div>
+
+    <!-- Login Form -->
+    <div>
+      <h2 style="font-size: 48px; font-weight: 800; margin: 0 0 24px 0;">🔐 Sign As</h2>
+        
+      <!-- Role Selection -->
+      <div style="display: grid; gap: 12px; margin-bottom: 24px;">
+        <button type="button" class="role-btn active" data-role="student" onclick="selectRole('student')">
+          <div style="font-size: 32px;">🎓</div>
+          <div style="flex: 1; text-align: left;">
+            <h3 style="font-weight: 800; font-size: 18px; margin: 0 0 4px 0;">Student</h3>
+            <p style="color: var(--muted); margin: 0; font-size: 14px;">Access training dashboard</p>
+          </div>
+        </button>
+        
+        <button type="button" class="role-btn" data-role="faculty" onclick="selectRole('faculty')">
+          <div style="font-size: 32px;">📚</div>
+          <div style="flex: 1; text-align: left;">
+            <h3 style="font-weight: 800; font-size: 18px; margin: 0 0 4px 0;">Faculty</h3>
+            <p style="color: var(--muted); margin: 0; font-size: 14px;">View student progress</p>
+          </div>
+        </button>
+        
+        <button type="button" class="role-btn" data-role="admin" onclick="selectRole('admin')">
+          <div style="font-size: 32px;">⚙️</div>
+          <div style="flex: 1; text-align: left;">
+            <h3 style="font-weight: 800; font-size: 18px; margin: 0 0 4px 0;">Administrator</h3>
+            <p style="color: var(--muted); margin: 0; font-size: 14px;">Manage users and system</p>
+          </div>
+        </button>
+      </div>
+
+      <!-- Student Login -->
+      <div id="studentLogin" class="login-section">
+        <label for="studentId">Student ID</label>
+        <input type="text" id="studentId">
+        
+        <label for="studentPassword">Password</label>
+        <input type="password" id="studentPassword">
+        
+        <button type="button" class="btn" onclick="loginStudent()" style="width: 100%; background: #2a7d2e; border-radius: 16px; padding: 14px 24px; font-size: 16px; transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 8px 16px rgba(42,125,46,.3)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+          Sign In
+        </button>
+        
+        <div style="text-align: center; margin-top: 12px;">
+          <a href="#" class="forgot-link" onclick="forgotPassword('student')">Forgot password?</a>
+        </div>
+      </div>
+      
+      <!-- Faculty Login -->
+      <div id="facultyLogin" class="login-section" style="display: none;">
+        <label for="facultyId">Faculty ID</label>
+        <input type="text" id="facultyId">
+        
+        <label for="facultyPassword">Password</label>
+        <input type="password" id="facultyPassword">
+        
+        <button type="button" class="btn" onclick="loginFaculty()" style="width: 100%; background: #2a7d2e; border-radius: 16px; padding: 14px 24px; font-size: 16px; transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 8px 16px rgba(42,125,46,.3)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+          Sign In
+        </button>
+        
+        <div style="text-align: center; margin-top: 12px;">
+          <a href="#" class="forgot-link" onclick="forgotPassword('faculty')">Forgot password?</a>
+        </div>
+      </div>
+
+      <!-- Admin Login -->
+      <div id="adminLogin" class="login-section" style="display: none;">
+        <label for="adminId">Admin ID</label>
+        <input type="text" id="adminId">
+        
+        <label for="adminPassword">Password</label>
+        <input type="password" id="adminPassword">
+        
+        <button type="button" class="btn" onclick="loginAdmin()" style="width: 100%; background: #2a7d2e; border-radius: 16px; padding: 14px 24px; font-size: 16px; transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 8px 16px rgba(42,125,46,.3)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+          Sign In
+        </button>
+        
+        <div style="text-align: center; margin-top: 12px;">
+          <a href="#" class="forgot-link" onclick="forgotPassword('admin')">Forgot password?</a>
+        </div>
+      </div>
+
+      <div id="loginMessage" class="login-message"></div>
+      
+      <div class="login-footer">
+        <p>Don't have an account? <a href="#" onclick="showRegistration()">Register here</a></p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Registration Modal -->
+  <div id="registrationModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Register New User</h2>
+        <button class="close-btn" onclick="hideRegistration()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <label for="regUserId">User ID *</label>
+          <input type="text" id="regUserId" placeholder="Enter unique user ID">
+        </div>
+        <div class="form-row">
+          <label for="regName">Full Name *</label>
+          <input type="text" id="regName" placeholder="Enter full name">
+        </div>
+        <div class="form-row">
+          <label for="regEmail">Email *</label>
+          <input type="email" id="regEmail" placeholder="Enter email address">
+        </div>
+        <div class="form-row">
+          <label for="regRole">Role *</label>
+          <input type="text" id="regRole" placeholder="e.g., Research Assistant, Lab Technician">
+        </div>
+        <div class="form-row">
+          <label for="regLocation">Location</label>
+          <input type="text" id="regLocation" placeholder="e.g., San Luis Obispo">
+        </div>
+        <button type="button" class="register-btn" onclick="registerNewUser()">Register</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedRole = 'student';
+
+    function selectRole(role) {
+      selectedRole = role;
+      
+      // Update button states
+      document.querySelectorAll('.role-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.role === role);
+      });
+      
+      // Show/hide login sections
+      document.getElementById('studentLogin').style.display = role === 'student' ? 'block' : 'none';
+      document.getElementById('facultyLogin').style.display = role === 'faculty' ? 'block' : 'none';
+      document.getElementById('adminLogin').style.display = role === 'admin' ? 'block' : 'none';
+      
+      // Clear message
+      document.getElementById('loginMessage').textContent = '';
+    }
+
+    async function loginStudent() {
+      const studentId = document.getElementById('studentId').value.trim();
+      const password = document.getElementById('studentPassword').value.trim();
+      
+      if (!studentId || !password) {
+        showMessage('Please enter both Student ID and password', 'error');
+        return;
+      }
+      
+      // Demo authentication - in real system would verify against database
+      if (studentId === 'svetlana' && password === 'student123') {
+        showMessage('Welcome, Svetlana Alekseevna!', 'success');
+        setTimeout(() => {
+          window.location.href = `./learner.html?id=${encodeURIComponent(studentId)}`;
+        }, 1000);
+      } else {
+        showMessage('Invalid Student ID or password', 'error');
+      }
+    }
+    
+    async function loginFaculty() {
+      const facultyId = document.getElementById('facultyId').value.trim();
+      const password = document.getElementById('facultyPassword').value.trim();
+      
+      if (!facultyId || !password) {
+        showMessage('Please enter both Faculty ID and password', 'error');
+        return;
+      }
+      
+      // Demo authentication
+      if (facultyId === 'faculty1' && password === 'faculty123') {
+        showMessage('Welcome, Dr. Faculty!', 'success');
+        setTimeout(() => {
+          window.location.href = `./faculty.html?id=${encodeURIComponent(facultyId)}`;
+        }, 1000);
+      } else {
+        showMessage('Invalid Faculty ID or password', 'error');
+      }
+    }
+
+    async function loginAdmin() {
+      const adminId = document.getElementById('adminId').value.trim();
+      const password = document.getElementById('adminPassword').value.trim();
+      
+      if (!adminId || !password) {
+        showMessage('Please enter both Admin ID and password', 'error');
+        return;
+      }
+      
+      // Demo authentication
+      if (adminId === 'admin' && password === 'admin123') {
+        showMessage('Admin access granted!', 'success');
+        setTimeout(() => {
+          window.location.href = './admin.html';
+        }, 1000);
+      } else {
+        showMessage('Invalid Admin ID or password', 'error');
+      }
+    }
+
+    function showMessage(text, type) {
+      const messageEl = document.getElementById('loginMessage');
+      messageEl.textContent = text;
+      messageEl.className = `login-message ${type}`;
+    }
+
+    function forgotPassword(role) {
+      const roleText = role === 'student' ? 'Student' : role === 'faculty' ? 'Faculty' : 'Admin';
+      alert(`${roleText} password reset:\n\nPlease contact the EHS office at:\n📧 ehs@calpoly.edu\n📞 (805) 756-6661\n\nProvide your ID and they will reset your password.`);
+    }
+
+    function showRegistration() {
+      document.getElementById('registrationModal').style.display = 'flex';
+    }
+
+    function hideRegistration() {
+      document.getElementById('registrationModal').style.display = 'none';
+      // Clear form
+      ['regUserId', 'regName', 'regEmail', 'regRole', 'regLocation'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+    }
+
+    async function registerNewUser() {
+      const userId = document.getElementById('regUserId').value.trim();
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const role = document.getElementById('regRole').value.trim();
+      const location = document.getElementById('regLocation').value.trim();
+      
+      if (!userId || !name || !email || !role) {
+        alert('Please fill in all required fields (marked with *)');
+        return;
+      }
+      
+      try {
+        const response = await fetch('/user/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: userId,
+            name: name,
+            email: email,
+            role: role,
+            location: location,
+            equipment: [],
+            incidents: []
+          })
+        });
+        
+        if (response.ok) {
+          alert(`Registration successful! You can now login with User ID: ${userId}`);
+          hideRegistration();
+          loadUserList(); // Refresh user list
+          document.getElementById('userId').value = userId; // Pre-fill login
+        } else {
+          alert('Registration failed. User ID might already exist.');
+        }
+      } catch (error) {
+        alert('Registration failed. Please try again.');
+      }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      
+      // Handle Enter key
+      document.getElementById('studentId').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') loginStudent();
+      });
+      
+      document.getElementById('facultyId').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') loginFaculty();
+      });
+      
+      document.getElementById('facultyPassword').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') loginFaculty();
+      });
+      
+      document.getElementById('adminPassword').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') loginAdmin();
+      });
+      
+      document.getElementById('studentPassword').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') loginStudent();
+      });
+      
+      // Close modal on outside click
+      document.getElementById('registrationModal').addEventListener('click', (e) => {
+        if (e.target.id === 'registrationModal') hideRegistration();
+      });
+    });
+  </script>
+</body>
+</html>

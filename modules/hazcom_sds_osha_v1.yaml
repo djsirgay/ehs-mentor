@@ -1,0 +1,10 @@
+id: hazcom_sds_osha_v1
+title: Hazard Communication + SDS (OSHA 1910.1200)
+regulators: ["OSHA"]
+roles: ["Lab Technician","Warehouse","Forklift Operator"]
+location: ["US"]
+risk_tags: ["chemicals","sds","spill_response"]
+prerequisites: []
+length_min: 6
+version: "1.0"
+source: policies/hazcom_1910_1200_sds.txt

@@ -1,0 +1,5 @@
+Forklift — Refueling (OSHA 1910.106)
+- Shut off the engine; no open flames or smoking.
+- Use approved containers/pumps; do not pressurize drums.
+- Provide ventilation; protect the refueling area from vehicle impact.
+Source: OSHA 1910.106 (demo summary)

@@ -1,0 +1,212 @@
+<!doctype html><meta charset="utf-8"><title>EHS – Admin</title>
+<link rel="icon" href="./calpoly-logo_ico.png" type="image/png">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lebedev-vibe.css">
+
+<!-- Header -->
+<header class="appbar">
+  <div class="container" style="display:flex;justify-content:space-between;align-items:center;gap:16px;">
+    <div style="display:flex;align-items:center;gap:24px;">
+      <img src="https://ucm.calpoly.edu/sites/default/files/inline-images/logo_page_graphics-03%20%281%29.png" alt="Cal Poly" height="96" style="filter:brightness(0) invert(1)">
+      <div>
+        <div style="font-size:48px;font-weight:800;">⚙️ Admin Panel</div>
+        <div style="font-size:24px;opacity:.8;margin-top:4px;font-style:italic;">System Management</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <button class="btn" onclick="window.location.href='./index.html'">Logout</button>
+    </div>
+  </div>
+</header>
+
+<!-- Main content -->
+<main class="container">
+  <div class="hero reveal" style="border-radius: 32px;">
+    <h1 style="font-size: 48px; font-weight: 800;">📊 Import Employee Roster</h1>
+    <div style="margin-top:24px;">
+      <div style="display:flex;gap:16px;align-items:center;margin-bottom:16px;">
+        <input type="file" id="rosterFile" accept=".csv" style="flex:1;padding:16px;border:2px solid #e5e7eb;border-radius:16px;font-size:16px;">
+        <button id="btnImport" class="btn" style="border-radius:16px;padding:16px 24px;font-size:16px;">Import CSV</button>
+      </div>
+      <div id="importRes" style="font-weight:600;"></div>
+      <p style="color:var(--muted);font-size:14px;margin-top:8px;">
+        CSV format: user_id,name,email,role,job_code,location,equipment_tags,incidents,manager,hired_date
+      </p>
+    </div>
+  </div>
+
+  <div class="hero reveal" style="border-radius: 32px;">
+    <h1 style="font-size: 48px; font-weight: 800;">👤 Register/Update User</h1>
+    <div style="margin-top:24px;">
+      <div class="grid2" style="gap:16px;margin-bottom:16px;">
+        <input id="uid" placeholder="User ID" style="padding:16px;border:2px solid #e5e7eb;border-radius:16px;font-size:16px;">
+        <input id="name" placeholder="Full Name" style="padding:16px;border:2px solid #e5e7eb;border-radius:16px;font-size:16px;">
+      </div>
+      <div class="grid2" style="gap:16px;margin-bottom:16px;">
+        <input id="email" placeholder="Email" style="padding:16px;border:2px solid #e5e7eb;border-radius:16px;font-size:16px;">
+        <input id="role" placeholder="Role" style="padding:16px;border:2px solid #e5e7eb;border-radius:16px;font-size:16px;">
+      </div>
+      <div class="grid2" style="gap:16px;margin-bottom:16px;">
+        <input id="jobcode" placeholder="Job Code" style="padding:16px;border:2px solid #e5e7eb;border-radius:16px;font-size:16px;">
+        <input id="loc" placeholder="Location" style="padding:16px;border:2px solid #e5e7eb;border-radius:16px;font-size:16px;">
+      </div>
+      <div class="grid2" style="gap:16px;margin-bottom:16px;">
+        <input id="equip" placeholder="Equipment: forklift,bsc" style="padding:16px;border:2px solid #e5e7eb;border-radius:16px;font-size:16px;">
+        <input id="inc" placeholder="Incidents: spill_2024" style="padding:16px;border:2px solid #e5e7eb;border-radius:16px;font-size:16px;">
+      </div>
+      <div class="grid2" style="gap:16px;margin-bottom:24px;">
+        <input id="mgr" placeholder="Manager" style="padding:16px;border:2px solid #e5e7eb;border-radius:16px;font-size:16px;">
+        <input id="hire" placeholder="YYYY-MM-DD" style="padding:16px;border:2px solid #e5e7eb;border-radius:16px;font-size:16px;">
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;">
+        <button id="btnSave" class="btn" style="border-radius:16px;padding:16px 24px;font-size:16px;">Save User</button>
+        <button id="btnOpen" class="btn-ghost" style="border-radius:16px;padding:16px 24px;font-size:16px;">Open as User</button>
+        <span id="savedFlag" style="font-weight:600;"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero reveal" style="border-radius: 32px;">
+    <h1 style="font-size: 48px; font-weight: 800;">📈 Role Statistics</h1>
+    <div style="margin-top:24px;">
+      <button id="btnStats" class="btn" style="margin-bottom:16px;border-radius:16px;padding:16px 24px;font-size:16px;">Load Role Stats</button>
+      <pre id="stats" style="background:#f8f9fa;padding:16px;border-radius:12px;overflow-x:auto;font-family:monospace;"></pre>
+    </div>
+  </div>
+</main>
+
+<!-- Footer -->
+<footer class="tech-footer">
+  <div class="tech-controls">
+    <div class="tech-status">
+      <div class="health-status">
+        <div id="healthDot" class="health-dot-large"></div>
+        <span class="health-label">Server Status</span>
+      </div>
+    </div>
+    <div style="color:var(--muted);font-size:14px;">Admin Panel v2+</div>
+  </div>
+</footer>
+
+<script src="./ehs_api.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+
+function updateHealthDot(isHealthy) {
+  const dot = $('#healthDot');
+  if(dot) {
+    dot.className = `health-dot-large ${isHealthy ? 'healthy' : 'unhealthy'}`;
+    dot.title = `Last sync: ${new Date().toLocaleTimeString()}`;
+  }
+}
+
+$('#btnImport').onclick = async ()=>{
+  const f = $('#rosterFile').files[0]; 
+  if(!f) {
+    $('#importRes').textContent = '⚠️ Please select a CSV file';
+    $('#importRes').style.color = 'var(--warn)';
+    return;
+  }
+  
+  $('#btnImport').textContent = 'Importing...';
+  $('#btnImport').disabled = true;
+  
+  try {
+    updateHealthDot(true);
+    const res = await ehs.importRoster(f);
+    $('#importRes').textContent = `✅ Successfully imported ${res.inserted||0} users`;
+    $('#importRes').style.color = 'var(--ok)';
+  } catch(e) {
+    updateHealthDot(false);
+    $('#importRes').textContent = '❌ Import failed - check file format';
+    $('#importRes').style.color = 'var(--danger)';
+  }
+  
+  $('#btnImport').textContent = 'Import CSV';
+  $('#btnImport').disabled = false;
+};
+
+$('#btnSave').onclick = async ()=>{
+  const data = {
+    user_id: $('#uid').value.trim(), 
+    name: $('#name').value.trim(), 
+    email: $('#email').value.trim(),
+    role: $('#role').value.trim(), 
+    job_code: $('#jobcode').value.trim(), 
+    location: $('#loc').value.trim(),
+    equipment: $('#equip').value.split(',').map(s=>s.trim()).filter(Boolean),
+    incidents: $('#inc').value.split(',').map(s=>s.trim()).filter(Boolean),
+    manager: $('#mgr').value.trim(), 
+    hired_date: $('#hire').value.trim()
+  };
+  
+  if(!data.user_id) {
+    $('#savedFlag').textContent = '⚠️ User ID required';
+    $('#savedFlag').style.color = 'var(--warn)';
+    return;
+  }
+  
+  $('#btnSave').textContent = 'Saving...';
+  $('#btnSave').disabled = true;
+  
+  try {
+    updateHealthDot(true);
+    await ehs.saveUser(data);
+    $('#savedFlag').textContent = '✅ User saved successfully';
+    $('#savedFlag').style.color = 'var(--ok)';
+    setTimeout(()=>$('#savedFlag').textContent='', 3000);
+  } catch(e) {
+    updateHealthDot(false);
+    $('#savedFlag').textContent = '❌ Save failed';
+    $('#savedFlag').style.color = 'var(--danger)';
+  }
+  
+  $('#btnSave').textContent = 'Save User';
+  $('#btnSave').disabled = false;
+};
+
+$('#btnOpen').onclick = ()=>{
+  const id = $('#uid').value.trim(); 
+  if(!id) {
+    alert('Enter User ID first');
+    return;
+  }
+  window.open(`./learner.html?id=${encodeURIComponent(id)}`, '_blank');
+};
+
+$('#btnStats').onclick = async ()=>{
+  $('#btnStats').textContent = 'Loading...';
+  $('#btnStats').disabled = true;
+  
+  try {
+    updateHealthDot(true);
+    const stats = await ehs.roleStats();
+    $('#stats').textContent = JSON.stringify(stats, null, 2);
+  } catch(e) {
+    updateHealthDot(false);
+    $('#stats').textContent = 'Error loading stats - API not available';
+  }
+  
+  $('#btnStats').textContent = 'Load Role Stats';
+  $('#btnStats').disabled = false;
+};
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  // Reveal animations
+  const obs = new IntersectionObserver(es => es.forEach(e => e.isIntersecting && e.target.classList.add('is-in')), {threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+  
+  // Health check
+  updateHealthDot(true);
+  setInterval(async () => {
+    try {
+      await fetch('/health');
+      updateHealthDot(true);
+    } catch(e) {
+      updateHealthDot(false);
+    }
+  }, 10000);
+});
+</script>

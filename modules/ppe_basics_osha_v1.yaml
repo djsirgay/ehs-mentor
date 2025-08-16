@@ -1,0 +1,10 @@
+id: ppe_basics_osha_v1
+title: PPE Basics (OSHA 1910.132)
+regulators: ["OSHA"]
+roles: ["Forklift Operator","Lab Technician","Warehouse"]
+location: ["US"]
+risk_tags: ["ppe"]
+prerequisites: []
+length_min: 5
+version: "1.0"
+source: policies/ppe_1910_132_basics.txt
