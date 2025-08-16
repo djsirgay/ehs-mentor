@@ -258,7 +258,7 @@ app.add_middleware(
 )
 
 # Canonical domain redirect
-CANON_HOST = "ehs-mentor.onrender.com"
+CANON_HOST = "calpoly.sergey-ulyanov.pro"
 
 @app.middleware("http")
 async def redirect_www_to_canonical(request: Request, call_next):
