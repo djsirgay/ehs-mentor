@@ -240,7 +240,16 @@ def tags_from_incidents(inc_list):
     return tags
 
 # Create FastAPI app with CSP headers
-app = FastAPI()
+app = FastAPI(title="EHS Mentor", description="Employee Health & Safety Training System")
+
+# Add CORS middleware for production
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.middleware("http")
 async def add_csp_header(request, call_next):
