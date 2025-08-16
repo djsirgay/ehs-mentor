@@ -1,8 +1,9 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, Response
+from fastapi import FastAPI, HTTPException, UploadFile, File, Response, Request
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.proxy_headers import ProxyHeadersMiddleware
 from pydantic import BaseModel
 import os, json, yaml, sqlite3, time, random, csv, io
 
@@ -244,6 +245,9 @@ def tags_from_incidents(inc_list):
 # Create FastAPI app with CSP headers
 app = FastAPI(title="EHS Mentor", description="Employee Health & Safety Training System")
 
+# Add proxy headers middleware
+app.add_middleware(ProxyHeadersMiddleware)
+
 # Add CORS middleware for production
 app.add_middleware(
     CORSMiddleware,
@@ -253,13 +257,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# WWW redirect middleware
+# Canonical domain redirect
+CANON_HOST = "ehs-mentor.onrender.com"
+
 @app.middleware("http")
-async def www_to_root(request, call_next):
+async def redirect_www_to_canonical(request: Request, call_next):
     host = request.headers.get("host", "").lower()
-    if host.startswith("www."):
-        target = str(request.url).replace("//www.", "//")
-        return RedirectResponse(target, status_code=308)
+    if host == f"www.{CANON_HOST}":
+        url = str(request.url).replace(f"//www.{CANON_HOST}", f"//{CANON_HOST}")
+        return RedirectResponse(url, status_code=308)
     return await call_next(request)
 
 @app.middleware("http")
