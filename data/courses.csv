@@ -1,0 +1,25 @@
+course_id,title,description,category,duration_minutes,url,tags,prerequisites,provider
+OSHA-510,OSHA Standards for General Industry,Intro to OSHA standards and employer responsibilities for general industry.,general,240,https://www.osha.gov/training,"osha,compliance,standards",,OSHA
+OSHA-30-GEN,OSHA 30 — General Industry,30‑hour outreach training for supervisors and safety leads in general industry.,general,1800,https://www.osha.gov/training/outreach,"osha,outreach,supervisor",OSHA-10-GEN,OSHA
+OSHA-10-GEN,OSHA 10 — General Industry,10‑hour outreach training for entry‑level workers in general industry.,general,600,https://www.osha.gov/training/outreach,"osha,outreach,entry-level",,OSHA
+HAZWOPER-40,HAZWOPER 40‑Hour,40‑hour hazardous waste operations and emergency response training.,chemical,2400,https://www.osha.gov/hazwoper,"hazwoper,hazardous,emergency",,OSHA
+HAZWOPER-24,HAZWOPER 24‑Hour (Occasional Site Worker),24‑hour hazardous waste operations training for occasional site workers.,chemical,1440,https://www.osha.gov/hazwoper,"hazwoper,site-worker",,OSHA
+HAZCOM-1910.1200,Hazard Communication (GHS),Right‑to‑Know and GHS hazard communication standard 1910.1200.,chemical,90,https://www.osha.gov/hazcom,"ghs,sds,labeling",,OSHA
+PPE-201,Personal Protective Equipment,"Selection, use, and maintenance of PPE; fit and limitations.",general,75,https://www.osha.gov/personal-protective-equipment,"ppe,fit,selection",,OSHA
+FIRE-101,Fire Safety Basics,"Basics of fire prevention, classes of fire, extinguisher use (PASS).",fire,90,https://www.nfpa.org/,"fire,extinguisher,prevention",,NFPA
+FIRE-201,Hot Work & Fire Watch,"Permitting, hot work hazards, fire watch duties and response.",fire,120,https://www.nfpa.org/,"hot-work,permits,fire-watch",FIRE-101,NFPA
+LADDER-101,Ladder & Fall Protection,"Portable ladders, scaffolds, and basic fall protection systems.",general,75,https://www.osha.gov/fall-protection,"fall-protection,ladders",,OSHA
+ERG-101,Ergonomics for Computer Work,"Risk factors, neutral posture, micro‑breaks, and workstation setup.",ergonomics,45,https://www.osha.gov/ergonomics,"ergonomics,office,rsis",,OSHA
+BIOSAFETY-BSL1,Biosafety Level 1,Intro to biosafety principles for BSL‑1 labs; basic microbiological practices.,biosafety,60,https://www.cdc.gov/biosafety/publications/bmbl5/,"biosafety,lab,bbp",,CDC/NIH
+BIOSAFETY-BSL2,Biosafety Level 2,"Enhanced practices for BSL‑2: sharps, access control, decontamination.",biosafety,90,https://www.cdc.gov/biosafety/publications/bmbl5/,"biosafety,lab,bbp",BIOSAFETY-BSL1,CDC/NIH
+BBP-1910.1030,Bloodborne Pathogens,"Exposure control plan, universal precautions, post‑exposure response.",biosafety,60,https://www.osha.gov/bloodborne-pathogens,"bbp,exposure,post-exposure",,OSHA
+CHEM-SPILL-110,Chemical Spill Response,"Spill classification, SDS, neutralization/absorption, reporting, PPE.",chemical,75,https://www.osha.gov/hazcom,"spill,sds,response",HAZCOM-1910.1200,OSHA
+LAB-SAFETY-101,Laboratory Safety Fundamentals,"General lab rules, housekeeping, chemical hygiene plan, fume hoods.",lab,90,https://www.osha.gov/laboratory-safety,"lab,fume-hood,housekeeping",HAZCOM-1910.1200,OSHA
+RADIATION-ALARA-101,Radiation Safety & ALARA,"Radiation basics, ALARA principles, dosimetry, posting/signage.",radiation,90,https://www.nrc.gov/,"radiation,alara,dosimetry",,NRC
+LASER-CLASS-2-3R,Laser Safety (Class 2/3R),"Laser classifications, controls, alignment hazards, eye protection.",radiation,60,https://www.osha.gov/laser-hazards,"laser,eye-protection,alignment",,OSHA
+LOTO-1910.147,Lockout/Tagout (LOTO),"Energy control procedures, isolation, verification, group LOTO.",electrical,90,https://www.osha.gov/control-hazardous-energy,"loto,energy-control,electrical",,OSHA
+FORKLIFT-OP-120,Powered Industrial Trucks (Forklift),"Safe operation, inspections, load handling, refueling/charging.",equipment,120,https://www.osha.gov/powered-industrial-trucks,"forklift,truck,inspection",,OSHA
+RESPIRATOR-QUAL-130,Respiratory Protection & Fit Test,"Respirator types, medical evaluation, qualitative fit testing.",ppe,90,https://www.osha.gov/respiratory-protection,"respirator,fit-test,medical",PPE-201,OSHA
+HEAT-ILLNESS-CA-3395,Heat Illness Prevention (CA),"Title 8 CCR §3395: hydration, shade, acclimatization, high‑heat.",environmental,60,https://www.dir.ca.gov/dosh/HeatIllnessInfo.html,"heat,california,outdoor",,Cal/OSHA
+IDP-101,Infectious Disease Prevention (General),"Controls for respiratory pathogens: hygiene, ventilation, PPE, reporting.",biosafety,60,https://www.cdc.gov/,"infectious,respiratory,ppe",,CDC
+WASTE-HAZ-DOT-100,DOT HazMat Shipping Basics,"Classification, packaging, marking/labeling, shipping papers.",chemical,180,https://www.phmsa.dot.gov/training,"dot,hazmat,shipping",HAZCOM-1910.1200,PHMSA

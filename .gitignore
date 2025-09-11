@@ -1,0 +1,26 @@
+# Secrets / env
+.env
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+.python-version
+.mypy_cache/
+.pytest_cache/
+dist/
+build/
+
+# Editors
+.vscode/
+.idea/
+
+# Data artifacts
+.DS_Store
+data/.DS_Store
+data/*.pdf
+data/*.docx
+data/*.xlsx

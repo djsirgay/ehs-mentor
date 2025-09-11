@@ -1,0 +1,13 @@
+.env
+.env.*
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.venv/
+.git/
+.vscode/
+.idea/
+data/*.pdf
+data/.DS_Store
+.DS_Store

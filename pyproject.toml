@@ -1,0 +1,22 @@
+[tool.poetry]
+name = "ehs-mentor"
+version = "0.1.0"
+description = "EHS Mentor — database-first API"
+authors = ["Sergey Ulyanov <ulyanoow@gmail.com>"]
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.115.0"
+uvicorn = {version="^0.30.0", extras=["standard"]}
+psycopg = {version="^3.2.1", extras=["binary"]}
+alembic = "^1.13.2"
+pydantic-settings = "^2.4.0"
+python-dotenv = "^1.0.1"
+boto3 = "^1.40.27"
+pypdf = "^6.0.0"
+python-multipart = "^0.0.20"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
