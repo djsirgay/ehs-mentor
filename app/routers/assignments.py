@@ -6,7 +6,7 @@ from typing import Optional, List
 import os
 import psycopg
 from psycopg.rows import dict_row
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 router = APIRouter()
@@ -92,7 +92,7 @@ def create_assignment(payload: AssignmentIn):
 # RU: Список назначений по user_id (POST-тело { "user_id": "..." })
 # ─────────────────────────────────────────────────────────────────────
 @router.get("/assignments/list", response_model=AssignmentListResp)
-def list_assignments(user_id: str):
+def list_assignments(user_id: str = Query(...)):
     if not user_id:
         raise HTTPException(status_code=400, detail="user_id is required")
 

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from app.db import get_conn
 
@@ -8,7 +8,7 @@ class RecommendByUser(BaseModel):
     user_id: str
 
 @router.get("/recommend")
-def recommend(user_id: str):
+def recommend(user_id: str = Query(...)):
     uid = user_id
 
     q_user = "SELECT 1 FROM users WHERE user_id=%s"
@@ -46,6 +46,6 @@ def recommend(user_id: str):
             raise HTTPException(status_code=404, detail="User not found")
         cur.execute(q, {"uid": uid})
         rows = cur.fetchall()
-        cols = [d[0] for d in cur.description]
+        items = [{"course_id": r["course_id"], "title": r["title"], "category": r["category"]} for r in rows]
 
-    return {"user_id": uid, "count": len(rows), "items": [dict(zip(cols, r)) for r in rows]}
+    return {"user_id": uid, "count": len(items), "items": items}
