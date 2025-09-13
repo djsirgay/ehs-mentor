@@ -1,0 +1,111 @@
+user_id,name,email,role,department
+u001,User 001,user001@example.edu,lab_tech,Chemistry Lab
+u002,User 002,user002@example.edu,chem_researcher,Biochemistry
+u003,User 003,user003@example.edu,facilities_maintenance,Facilities
+u004,User 004,user004@example.edu,office_worker,HR
+u005,User 005,user005@example.edu,forklift_operator,Warehouse
+u006,User 006,user006@example.edu,radiation_worker,Radiation Safety
+u007,User 007,user007@example.edu,lab_tech,Chemistry Lab
+u008,User 008,user008@example.edu,chem_researcher,Biochemistry
+u009,User 009,user009@example.edu,facilities_maintenance,Facilities
+u010,User 010,user010@example.edu,office_worker,HR
+u011,User 011,user011@example.edu,forklift_operator,Warehouse
+u012,User 012,user012@example.edu,radiation_worker,Radiation Safety
+u013,User 013,user013@example.edu,lab_tech,Chemistry Lab
+u014,User 014,user014@example.edu,chem_researcher,Biochemistry
+u015,User 015,user015@example.edu,facilities_maintenance,Facilities
+u016,User 016,user016@example.edu,office_worker,HR
+u017,User 017,user017@example.edu,forklift_operator,Warehouse
+u018,User 018,user018@example.edu,radiation_worker,Radiation Safety
+u019,User 019,user019@example.edu,lab_tech,Chemistry Lab
+u020,User 020,user020@example.edu,chem_researcher,Biochemistry
+u021,User 021,user021@example.edu,facilities_maintenance,Facilities
+u022,User 022,user022@example.edu,office_worker,HR
+u023,User 023,user023@example.edu,forklift_operator,Warehouse
+u024,User 024,user024@example.edu,radiation_worker,Radiation Safety
+u025,User 025,user025@example.edu,lab_tech,Chemistry Lab
+u026,User 026,user026@example.edu,chem_researcher,Biochemistry
+u027,User 027,user027@example.edu,facilities_maintenance,Facilities
+u028,User 028,user028@example.edu,office_worker,HR
+u029,User 029,user029@example.edu,forklift_operator,Warehouse
+u030,User 030,user030@example.edu,radiation_worker,Radiation Safety
+u031,User 031,user031@example.edu,lab_tech,Chemistry Lab
+u032,User 032,user032@example.edu,chem_researcher,Biochemistry
+u033,User 033,user033@example.edu,facilities_maintenance,Facilities
+u034,User 034,user034@example.edu,office_worker,HR
+u035,User 035,user035@example.edu,forklift_operator,Warehouse
+u036,User 036,user036@example.edu,radiation_worker,Radiation Safety
+u037,User 037,user037@example.edu,lab_tech,Chemistry Lab
+u038,User 038,user038@example.edu,chem_researcher,Biochemistry
+u039,User 039,user039@example.edu,facilities_maintenance,Facilities
+u040,User 040,user040@example.edu,office_worker,HR
+u041,User 041,user041@example.edu,forklift_operator,Warehouse
+u042,User 042,user042@example.edu,radiation_worker,Radiation Safety
+u043,User 043,user043@example.edu,lab_tech,Chemistry Lab
+u044,User 044,user044@example.edu,chem_researcher,Biochemistry
+u045,User 045,user045@example.edu,facilities_maintenance,Facilities
+u046,User 046,user046@example.edu,office_worker,HR
+u047,User 047,user047@example.edu,forklift_operator,Warehouse
+u048,User 048,user048@example.edu,radiation_worker,Radiation Safety
+u049,User 049,user049@example.edu,lab_tech,Chemistry Lab
+u050,User 050,user050@example.edu,chem_researcher,Biochemistry
+u051,User 051,user051@example.edu,facilities_maintenance,Facilities
+u052,User 052,user052@example.edu,office_worker,HR
+u053,User 053,user053@example.edu,forklift_operator,Warehouse
+u054,User 054,user054@example.edu,radiation_worker,Radiation Safety
+u055,User 055,user055@example.edu,lab_tech,Chemistry Lab
+u056,User 056,user056@example.edu,chem_researcher,Biochemistry
+u057,User 057,user057@example.edu,facilities_maintenance,Facilities
+u058,User 058,user058@example.edu,office_worker,HR
+u059,User 059,user059@example.edu,forklift_operator,Warehouse
+u060,User 060,user060@example.edu,radiation_worker,Radiation Safety
+u061,User 061,user061@example.edu,lab_tech,Chemistry Lab
+u062,User 062,user062@example.edu,chem_researcher,Biochemistry
+u063,User 063,user063@example.edu,facilities_maintenance,Facilities
+u064,User 064,user064@example.edu,office_worker,HR
+u065,User 065,user065@example.edu,forklift_operator,Warehouse
+u066,User 066,user066@example.edu,radiation_worker,Radiation Safety
+u067,User 067,user067@example.edu,lab_tech,Chemistry Lab
+u068,User 068,user068@example.edu,chem_researcher,Biochemistry
+u069,User 069,user069@example.edu,facilities_maintenance,Facilities
+u070,User 070,user070@example.edu,office_worker,HR
+u071,User 071,user071@example.edu,forklift_operator,Warehouse
+u072,User 072,user072@example.edu,radiation_worker,Radiation Safety
+u073,User 073,user073@example.edu,lab_tech,Chemistry Lab
+u074,User 074,user074@example.edu,chem_researcher,Biochemistry
+u075,User 075,user075@example.edu,facilities_maintenance,Facilities
+u076,User 076,user076@example.edu,office_worker,HR
+u077,User 077,user077@example.edu,forklift_operator,Warehouse
+u078,User 078,user078@example.edu,radiation_worker,Radiation Safety
+u079,User 079,user079@example.edu,lab_tech,Chemistry Lab
+u080,User 080,user080@example.edu,chem_researcher,Biochemistry
+u081,User 081,user081@example.edu,facilities_maintenance,Facilities
+u082,User 082,user082@example.edu,office_worker,HR
+u083,User 083,user083@example.edu,forklift_operator,Warehouse
+u084,User 084,user084@example.edu,radiation_worker,Radiation Safety
+u085,User 085,user085@example.edu,lab_tech,Chemistry Lab
+u086,User 086,user086@example.edu,chem_researcher,Biochemistry
+u087,User 087,user087@example.edu,facilities_maintenance,Facilities
+u088,User 088,user088@example.edu,office_worker,HR
+u089,User 089,user089@example.edu,forklift_operator,Warehouse
+u090,User 090,user090@example.edu,radiation_worker,Radiation Safety
+u091,User 091,user091@example.edu,lab_tech,Chemistry Lab
+u092,User 092,user092@example.edu,chem_researcher,Biochemistry
+u093,User 093,user093@example.edu,facilities_maintenance,Facilities
+u094,User 094,user094@example.edu,office_worker,HR
+u095,User 095,user095@example.edu,forklift_operator,Warehouse
+u096,User 096,user096@example.edu,radiation_worker,Radiation Safety
+u097,User 097,user097@example.edu,lab_tech,Chemistry Lab
+u098,User 098,user098@example.edu,chem_researcher,Biochemistry
+u099,User 099,user099@example.edu,facilities_maintenance,Facilities
+u100,User 100,user100@example.edu,office_worker,HR
+u101,User 101,user101@example.edu,forklift_operator,Warehouse
+u102,User 102,user102@example.edu,radiation_worker,Radiation Safety
+u103,User 103,user103@example.edu,lab_tech,Chemistry Lab
+u104,User 104,user104@example.edu,chem_researcher,Biochemistry
+u105,User 105,user105@example.edu,facilities_maintenance,Facilities
+u106,User 106,user106@example.edu,office_worker,HR
+u107,User 107,user107@example.edu,forklift_operator,Warehouse
+u108,User 108,user108@example.edu,radiation_worker,Radiation Safety
+u109,User 109,user109@example.edu,lab_tech,Chemistry Lab
+u110,User 110,user110@example.edu,chem_researcher,Biochemistry

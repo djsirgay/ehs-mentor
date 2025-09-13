@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from pypdf import PdfReader
 from app.db import get_conn
 from app.ai.mappers import map_text_to_courses
+from app.ai.extractor import extract_courses
 
 router = APIRouter()
 
@@ -124,8 +125,6 @@ def promote_document_courses(payload: PromoteReq):
 
     return {"inserted": inserted, "skipped": skipped, "role": payload.role, "courses": kept}
 
-from app.ai.extractor import extract_courses
-
 class ExtractDoc(BaseModel):
     doc_id: int
     pages_limit: int | None = 20  # None = читать весь документ
@@ -184,8 +183,6 @@ def extract_document_courses(payload: ExtractDoc):
             for m in matches
         ][:20],
     }
-
-from app.ai.extractor import extract_courses
 
 class ProcessDoc(BaseModel):
     doc_id: int

@@ -4,7 +4,7 @@ from app.db import get_conn
 
 router = APIRouter()
 
-@router.post("/documents/upload")
+@router.post("/upload/pdf")
 async def upload_document(
     file: UploadFile = File(...),
     source: str = "UPLOAD",

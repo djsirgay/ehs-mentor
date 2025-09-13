@@ -1,0 +1,25 @@
+course_id,title,category
+OSHA-510,OSHA Standards for General Industry,general
+OSHA-30-GEN,OSHA 30 — General Industry,general
+OSHA-10-GEN,OSHA 10 — General Industry,general
+HAZWOPER-40,HAZWOPER 40‑Hour,chemical
+HAZWOPER-24,HAZWOPER 24‑Hour (Occasional Site Worker),chemical
+HAZCOM-1910.1200,Hazard Communication (GHS),chemical
+PPE-201,Personal Protective Equipment,general
+FIRE-101,Fire Safety Basics,fire
+FIRE-201,Hot Work & Fire Watch,fire
+LADDER-101,Ladder & Fall Protection,general
+ERG-101,Ergonomics for Computer Work,ergonomics
+BIOSAFETY-BSL1,Biosafety Level 1,biosafety
+BIOSAFETY-BSL2,Biosafety Level 2,biosafety
+BBP-1910.1030,Bloodborne Pathogens,biosafety
+CHEM-SPILL-110,Chemical Spill Response,chemical
+LAB-SAFETY-101,Laboratory Safety Fundamentals,lab
+RADIATION-ALARA-101,Radiation Safety & ALARA,radiation
+LASER-CLASS-2-3R,Laser Safety (Class 2/3R),radiation
+LOTO-1910.147,Lockout/Tagout (LOTO),electrical
+FORKLIFT-OP-120,Powered Industrial Trucks (Forklift),equipment
+RESPIRATOR-QUAL-130,Respiratory Protection & Fit Test,ppe
+HEAT-ILLNESS-CA-3395,Heat Illness Prevention (CA),environmental
+IDP-101,Infectious Disease Prevention (General),biosafety
+WASTE-HAZ-DOT-100,DOT HazMat Shipping Basics,chemical

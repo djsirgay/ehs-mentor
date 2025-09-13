@@ -7,9 +7,9 @@ router = APIRouter()
 class RecommendByUser(BaseModel):
     user_id: str
 
-@router.post("/recommend")
-def recommend(payload: RecommendByUser):
-    uid = payload.user_id
+@router.get("/recommend")
+def recommend(user_id: str):
+    uid = user_id
 
     q_user = "SELECT 1 FROM users WHERE user_id=%s"
 

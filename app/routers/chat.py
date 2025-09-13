@@ -5,13 +5,12 @@ from app.ai.bedrock_client import chat as bedrock_chat
 router = APIRouter()
 
 class ChatIn(BaseModel):
-    prompt: str
+    message: str
 
-@router.post("/chat")
-def chat_endpoint(payload: ChatIn):
+@router.post("/chat/reply")
+def chat_reply(payload: ChatIn):
     try:
-        reply = bedrock_chat(payload.prompt)
+        reply = bedrock_chat(payload.message)
         return {"reply": reply}
     except Exception as e:
-        # Чтобы не падать 500 без объяснения
         raise HTTPException(status_code=500, detail=str(e))

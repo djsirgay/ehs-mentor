@@ -5,18 +5,24 @@ from alembic import context
 
 config = context.config
 
-# 1) Берём URL из переменной окружения, иначе из alembic.ini
-db_url = os.getenv("DATABASE_DSN") or config.get_main_option("sqlalchemy.url") or ""
+# Загружаем .env
+from dotenv import load_dotenv
+load_dotenv()
 
-# 2) Нормализуем форматы:
-# Render/другие провайдеры часто дают "postgres://"
+# Берём URL из переменной окружения
+db_url = os.getenv("DATABASE_DSN")
+if not db_url:
+    raise ValueError("DATABASE_DSN environment variable is required")
+
+# Нормализуем форматы
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 
-# Alembic/SQLAlchemy для psycopg требуют префикс "+psycopg"
-sa_url = db_url
-if sa_url.startswith("postgresql://"):
-    sa_url = sa_url.replace("postgresql://", "postgresql+psycopg://", 1)
+# Добавляем +psycopg для SQLAlchemy
+if db_url.startswith("postgresql://"):
+    sa_url = db_url.replace("postgresql://", "postgresql+psycopg://", 1)
+else:
+    sa_url = db_url
 
 config.set_main_option("sqlalchemy.url", sa_url)
 

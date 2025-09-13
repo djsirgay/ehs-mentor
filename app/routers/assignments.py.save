@@ -13,15 +13,10 @@ router = APIRouter()
 
 # EN: Read DATABASE_DSN from environment (Render External Database URL).
 # RU: Читаем DATABASE_DSN из окружения (External Database URL из Render).
-def _env_nonempty(name: str) -> str | None:
-    v = os.getenv(name)
-    return v if v and v.strip() else None
-
-DSN = _env_nonempty("DATABASE_DSN") or _env_nonempty("PSQL_URL")
-
+DSN = os.getenv("DATABASE_DSN") or os.getenv("PSQL_URL")
 def get_conn():
-    if not DSN:
-        raise RuntimeError("DATABASE_DSN is not set or empty")
+    # EN: Simple per-request connection; ok for current load, switch to pool later.
+    # RU: Простое соединение на запрос; для текущей нагрузки ок, потом можно пул.
     return psycopg.connect(DSN, row_factory=dict_row)
 
 # ─────────────────────────────────────────────────────────────────────
@@ -91,8 +86,13 @@ def create_assignment(payload: AssignmentIn):
 # EN: List assignments by user (POST body { "user_id": "..." })
 # RU: Список назначений по user_id (POST-тело { "user_id": "..." })
 # ─────────────────────────────────────────────────────────────────────
-@router.get("/assignments/list", response_model=AssignmentListResp)
-def list_assignments(user_id: str):
+@router.post("/assignments/list", response_model=AssignmentListResp)
+
+@router.post("/assignments/list", response_model=AssignmentListResp)
+def list_assignments(body: dict):
+    # EN: Expect {"user_id": "..."} in POST body.
+    # RU: Ожидаем {"user_id": "..."} в теле POST.
+    user_id = body.get("user_id")
     if not user_id:
         raise HTTPException(status_code=400, detail="user_id is required")
 
@@ -135,43 +135,6 @@ def list_assignments(user_id: str):
 
     items = [AssignmentOut(**r) for r in rows]
     return AssignmentListResp(user_id=user_id, count=len(items), items=items)
-
-class SyncIn(BaseModel):
-    user_id: Optional[str] = None  # None = sync all users
-
-@router.post("/assignments/sync")
-def sync_assignments(payload: SyncIn):
-    try:
-        with get_conn() as conn, conn.cursor() as cur:
-            # Простая версия - создаем назначения для всех пользователей
-            if payload.user_id:
-                cur.execute("""
-                    INSERT INTO assignments (user_id, course_id, status, due_date, assigned_by)
-                    SELECT u.user_id, c.course_id, 'assigned', CURRENT_DATE + INTERVAL '365 days', 'system'
-                    FROM users u, courses c
-                    WHERE u.user_id = %s
-                      AND NOT EXISTS (
-                        SELECT 1 FROM assignments a 
-                        WHERE a.user_id = u.user_id AND a.course_id = c.course_id
-                      )
-                    LIMIT 5
-                """, (payload.user_id,))
-            else:
-                cur.execute("""
-                    INSERT INTO assignments (user_id, course_id, status, due_date, assigned_by)
-                    SELECT u.user_id, c.course_id, 'assigned', CURRENT_DATE + INTERVAL '365 days', 'system'
-                    FROM users u, courses c
-                    WHERE NOT EXISTS (
-                        SELECT 1 FROM assignments a 
-                        WHERE a.user_id = u.user_id AND a.course_id = c.course_id
-                      )
-                    LIMIT 20
-                """)
-            inserted = cur.rowcount
-            conn.commit()
-        return {"synced": inserted, "user_id": payload.user_id}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Sync error: {str(e)}")
 
 @router.post("/assignments/reassign")
 def reassign(payload: ReassignIn):
@@ -218,3 +181,7 @@ def reassign(payload: ReassignIn):
         "due_date": str(out["due_date"]) if out["due_date"] else None,
         "auto_extended": bool(prev_status == "completed" and payload.new_status in {"assigned","in_progress"}),
     }
+DSN = os.getenv("DATABASE_DSN") or os.getenv("PSQL_URL")
+def get_conn():
+    return psycopg.connect(DSN, row_factory=dict_row)
+
