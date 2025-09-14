@@ -44,7 +44,8 @@ async def upload_document(
         result = cur.fetchone()
         if result is None:
             raise HTTPException(status_code=500, detail="Failed to insert document")
-        doc_id = result[0]
+        # result может быть tuple или Row объектом
+        doc_id = result.doc_id if hasattr(result, 'doc_id') else result[0]
         conn.commit()
 
     return {"doc_id": doc_id, "filename": fname, "bytes": size, "path": dest}
