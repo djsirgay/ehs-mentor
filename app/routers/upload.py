@@ -22,9 +22,10 @@ async def upload_document(
     file_content = await file.read()
     file_hash = hashlib.sha256(file_content).hexdigest()
     
-    # Проверяем есть ли уже такой файл
+    # Проверяем есть ли уже такой файл (пока по имени, потом по хэшу)
     with get_conn() as conn, conn.cursor() as cur:
-        cur.execute("SELECT doc_id, title FROM documents WHERE file_hash = %s", (file_hash,))
+        # Временно проверяем по имени файла
+        cur.execute("SELECT doc_id, title FROM documents WHERE title = %s", (fname,))
         existing = cur.fetchone()
         if existing:
             return {
@@ -54,7 +55,7 @@ async def upload_document(
     if not title:
         title = fname
 
-    # регистрируем документ в БД
+    # регистрируем документ в БД (пока без хэша)
     with get_conn() as conn, conn.cursor() as cur:
         cur.execute(
             "INSERT INTO documents (source, title, path) VALUES (%s,%s,%s) RETURNING doc_id",
