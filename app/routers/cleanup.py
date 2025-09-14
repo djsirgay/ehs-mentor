@@ -30,3 +30,30 @@ def remove_duplicate_documents():
     except Exception as e:
         logger.error(f"Cleanup error: {e}")
         raise HTTPException(status_code=500, detail=f"cleanup error: {e}")
+
+@router.delete("/documents/all")
+def remove_all_documents():
+    """
+    Удаляет ВСЕ документы из системы
+    """
+    try:
+        with get_conn() as conn, conn.cursor() as cur:
+            # Сначала удаляем связанные записи
+            cur.execute("DELETE FROM doc_course_map")
+            map_deleted = cur.rowcount
+            
+            # Потом удаляем документы
+            cur.execute("DELETE FROM documents")
+            docs_deleted = cur.rowcount
+            
+            conn.commit()
+            
+            return {
+                "deleted_documents": docs_deleted, 
+                "deleted_mappings": map_deleted,
+                "message": f"Удалено {docs_deleted} документов и {map_deleted} связей"
+            }
+            
+    except Exception as e:
+        logger.error(f"Cleanup all error: {e}")
+        raise HTTPException(status_code=500, detail=f"cleanup error: {e}")
