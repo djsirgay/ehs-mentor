@@ -41,7 +41,10 @@ async def upload_document(
             "INSERT INTO documents (source, title, path) VALUES (%s,%s,%s) RETURNING doc_id",
             (source, title, dest),
         )
-        doc_id = cur.fetchone()[0]
+        result = cur.fetchone()
+        if result is None:
+            raise HTTPException(status_code=500, detail="Failed to insert document")
+        doc_id = result[0]
         conn.commit()
 
     return {"doc_id": doc_id, "filename": fname, "bytes": size, "path": dest}
