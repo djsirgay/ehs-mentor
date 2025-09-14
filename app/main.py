@@ -23,8 +23,9 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # В продакшене указать конкретные домены
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 @app.exception_handler(Exception)
