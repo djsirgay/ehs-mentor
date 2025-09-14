@@ -1,6 +1,9 @@
 import os
+import logging
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from app.db import get_conn
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -44,8 +47,21 @@ async def upload_document(
         result = cur.fetchone()
         if result is None:
             raise HTTPException(status_code=500, detail="Failed to insert document")
-        # result может быть tuple или Row объектом
-        doc_id = result.doc_id if hasattr(result, 'doc_id') else result[0]
+        
+        # Отладка: посмотрим что возвращает fetchone
+        logger.error(f"fetchone result type: {type(result)}, value: {result}")
+        
+        try:
+            if hasattr(result, 'doc_id'):
+                doc_id = result.doc_id
+            elif isinstance(result, (list, tuple)) and len(result) > 0:
+                doc_id = result[0]
+            else:
+                # Попробуем получить первое значение любым способом
+                doc_id = list(result)[0] if result else None
+        except Exception as e:
+            logger.error(f"Error extracting doc_id: {e}")
+            raise HTTPException(status_code=500, detail=f"Failed to extract doc_id: {e}")
         conn.commit()
 
     return {"doc_id": doc_id, "filename": fname, "bytes": size, "path": dest}
