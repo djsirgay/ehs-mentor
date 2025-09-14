@@ -1,4 +1,5 @@
 import os
+import hashlib
 import logging
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from app.db import get_conn
@@ -17,22 +18,37 @@ async def upload_document(
     if not fname.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are supported")
 
+    # Читаем содержимое файла для хэширования
+    file_content = await file.read()
+    file_hash = hashlib.sha256(file_content).hexdigest()
+    
+    # Проверяем есть ли уже такой файл
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute("SELECT doc_id, title FROM documents WHERE file_hash = %s", (file_hash,))
+        existing = cur.fetchone()
+        if existing:
+            return {
+                "doc_id": existing['doc_id'], 
+                "filename": fname, 
+                "message": f"Документ '{existing['title']}' уже был загружен ранее",
+                "duplicate": True
+            }
+
     # Создаем папку если её нет
     data_dir = "/app/data"
     os.makedirs(data_dir, exist_ok=True)
     
-    dest = os.path.join(data_dir, fname)
+    dest = os.path.join(data_dir, f"{file_hash[:8]}_{fname}")
 
-    # сохраняем файл по кускам
+    # сохраняем файл (содержимое уже в памяти)
     try:
         with open(dest, "wb") as out:
-            while True:
-                chunk = await file.read(1024 * 1024)
-                if not chunk:
-                    break
-                out.write(chunk)
+            out.write(file_content)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to save file: {e}")
+    
+    # Перемещаем указатель файла назад к началу
+    await file.seek(0)
 
     size = os.path.getsize(dest)
     if not title:
