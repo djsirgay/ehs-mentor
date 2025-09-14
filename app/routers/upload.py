@@ -14,7 +14,7 @@ async def upload_document(
     if not fname.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are supported")
 
-    dest = os.path.join("/data", fname)
+    dest = os.path.join("/app/data", fname)
 
     # сохраняем файл по кускам
     try:

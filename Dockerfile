@@ -16,6 +16,7 @@ COPY db_migrations /app/db_migrations
 
 # app
 COPY app /app/app
+COPY data /app/data
 COPY start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
