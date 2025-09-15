@@ -3,11 +3,24 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
 import { getStats } from '@/api/stats'
 import { getAssignments } from '@/api/assignments'
-import { getUserProfile } from '@/api/user'
-import { UserSwitcher } from '@/components/UserSwitcher'
 
 interface LearnerProps {
   theme?: 'light' | 'dark'
+}
+
+// Custom error classes for better error handling
+class NotFoundError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'NotFoundError'
+  }
+}
+
+class MethodError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'MethodError'
+  }
 }
 
 export function Learner({ theme = 'light' }: LearnerProps) {
@@ -18,12 +31,6 @@ export function Learner({ theme = 'light' }: LearnerProps) {
   const [chatResponse, setChatResponse] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const queryClient = useQueryClient()
-
-  const { data: userProfile, isLoading: profileLoading, error: profileError } = useQuery({
-    queryKey: ['user', currentUserId],
-    queryFn: () => getUserProfile(currentUserId),
-    retry: 1,
-  })
 
   const { data: stats } = useQuery({
     queryKey: ['stats'],
@@ -38,18 +45,39 @@ export function Learner({ theme = 'light' }: LearnerProps) {
 
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/chat/reply`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, user_id: currentUserId })
-      })
-      if (!response.ok) throw new Error('Chat API error')
-      return response.json()
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/chat/reply`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, user_id: currentUserId })
+        })
+        
+        if (!response.ok) {
+          if (response.status === 404) throw new NotFoundError('Chat endpoint not found')
+          if (response.status === 405) throw new MethodError('Chat method not allowed')
+          throw new Error(`HTTP ${response.status}`)
+        }
+        
+        return response.json()
+      } catch (error) {
+        if (error instanceof NotFoundError || error instanceof MethodError) {
+          throw error
+        }
+        throw new Error('Network error')
+      }
     },
     onMutate: () => setIsTyping(true),
     onSettled: () => setIsTyping(false),
     onSuccess: (data) => setChatResponse(data.reply || 'No response received'),
-    onError: () => setChatResponse('Sorry, I encountered an error. Please try again.')
+    onError: (error) => {
+      if (error instanceof NotFoundError) {
+        setChatResponse('Chat feature is not available yet.')
+      } else if (error instanceof MethodError) {
+        setChatResponse('Chat service is temporarily unavailable.')
+      } else {
+        setChatResponse('Sorry, I encountered an error. Please try again.')
+      }
+    }
   })
 
   // Clear chat when user changes
@@ -118,39 +146,6 @@ export function Learner({ theme = 'light' }: LearnerProps) {
     transition: 'transform .18s ease'
   }
 
-  // Error states
-  if (profileError) {
-    return (
-      <div style={{ fontFamily: 'system-ui, sans-serif', margin: 0, padding: 0, background: '#f5f5f5' }}>
-        <div style={{ ...containerStyle, textAlign: 'center', paddingTop: '100px' }}>
-          <div style={{ ...heroStyle, maxWidth: '500px', margin: '0 auto' }}>
-            <h1 style={{ fontSize: '48px', margin: '0 0 24px 0' }}>❌</h1>
-            <h2 style={{ fontSize: '24px', fontWeight: '600', margin: '0 0 16px 0' }}>
-              User Not Found
-            </h2>
-            <p style={{ color: '#6b7280', marginBottom: '24px' }}>
-              User ID "{currentUserId}" does not exist or API is unavailable.
-            </p>
-            <button
-              onClick={() => window.location.reload()}
-              style={{
-                background: '#2a7d2e',
-                color: 'white',
-                border: 'none',
-                borderRadius: '16px',
-                padding: '12px 24px',
-                fontWeight: '700',
-                cursor: 'pointer'
-              }}
-            >
-              Retry
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div style={{ fontFamily: 'system-ui, sans-serif', margin: 0, padding: 0, background: '#f5f5f5' }}>
       {/* Header */}
@@ -166,7 +161,7 @@ export function Learner({ theme = 'light' }: LearnerProps) {
             <div>
               <div style={{ fontSize: '28px', fontWeight: '600' }}>
                 👋 Hello, <strong style={{ textDecoration: 'underline', textDecorationThickness: '1px', textUnderlineOffset: '4px' }}>
-                  {profileLoading ? 'Loading...' : userProfile?.display_name || 'Unknown User'}
+                  {currentUserId}
                 </strong>
               </div>
               <div style={{ fontSize: '20px', opacity: '.8', marginTop: '4px', fontStyle: 'italic' }}>
@@ -175,10 +170,25 @@ export function Learner({ theme = 'light' }: LearnerProps) {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            <UserSwitcher 
-              currentUserId={currentUserId}
-              onUserChange={handleUserChange}
-            />
+            {/* Simple user ID input instead of complex switcher */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '14px', opacity: '0.8' }}>User ID:</span>
+              <input
+                type="text"
+                value={currentUserId}
+                onChange={(e) => handleUserChange(e.target.value)}
+                style={{
+                  background: 'rgba(255,255,255,0.2)',
+                  color: 'white',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  borderRadius: '6px',
+                  padding: '6px 10px',
+                  fontSize: '14px',
+                  width: '80px'
+                }}
+                placeholder="u001"
+              />
+            </div>
             <button style={{
               background: '#fff',
               color: '#2a7d2e',
@@ -321,7 +331,7 @@ export function Learner({ theme = 'light' }: LearnerProps) {
                 <div style={{ textAlign: 'center', padding: '40px' }}>
                   <div style={{ fontSize: '18px', marginBottom: '16px' }}>⏳ Loading assignments...</div>
                   <div style={{ color: '#6b7280' }}>
-                    Fetching training data for {userProfile?.display_name || currentUserId}
+                    Fetching training data for {currentUserId}
                   </div>
                 </div>
               ) : assignmentsError ? (
@@ -331,7 +341,7 @@ export function Learner({ theme = 'light' }: LearnerProps) {
                     Failed to Load Assignments
                   </div>
                   <div style={{ color: '#6b7280', marginBottom: '24px' }}>
-                    Could not fetch training assignments for {userProfile?.display_name || currentUserId}
+                    Could not fetch training assignments for {currentUserId}
                   </div>
                   <button
                     onClick={() => queryClient.invalidateQueries({ queryKey: ['assignments', currentUserId] })}
@@ -426,7 +436,7 @@ export function Learner({ theme = 'light' }: LearnerProps) {
                     No Training Assignments
                   </div>
                   <div style={{ color: '#6b7280' }}>
-                    {userProfile?.display_name || currentUserId} has no training assignments yet.
+                    {currentUserId} has no training assignments yet.
                   </div>
                 </div>
               )}
