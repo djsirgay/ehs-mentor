@@ -21,7 +21,7 @@ export async function getAssignments(
   limit: number = 100, 
   offset: number = 0
 ): Promise<AssignmentListResponse> {
-  const url = `${API_BASE_URL}/api/user-assignments?user_id=${encodeURIComponent(userId)}&limit=${limit}&offset=${offset}`
+  const url = `${API_BASE_URL}/api/assignments-v2?user_id=${encodeURIComponent(userId)}&limit=${limit}&offset=${offset}`
   
   const res = await fetch(url)
   const data = await res.json().catch(() => ({}))
