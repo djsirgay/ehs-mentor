@@ -25,7 +25,7 @@ class MethodError extends Error {
 
 export function Learner({ theme = 'light' }: LearnerProps) {
   const [searchParams, setSearchParams] = useSearchParams()
-  const currentUserId = searchParams.get('user_id') || 'u001'
+  const currentUserId = searchParams.get('user_id') || ''  // NO DEFAULT HARDCODE
   
   const [chatInput, setChatInput] = useState('')
   const [chatResponse, setChatResponse] = useState('')
@@ -41,6 +41,7 @@ export function Learner({ theme = 'light' }: LearnerProps) {
     queryKey: ['assignments', currentUserId],
     queryFn: () => getAssignments(currentUserId),
     retry: 1,
+    enabled: !!currentUserId,  // Only fetch if user_id exists
   })
 
   const chatMutation = useMutation({
@@ -93,13 +94,59 @@ export function Learner({ theme = 'light' }: LearnerProps) {
   const nextAssignment = assignments?.items?.find(a => a.status === 'assigned')
 
   const handleChatSubmit = () => {
-    if (!chatInput.trim()) return
+    if (!chatInput.trim() || !currentUserId) return
     chatMutation.mutate(chatInput)
     setChatInput('')
   }
 
   const handleUserChange = (userId: string) => {
-    setSearchParams({ user_id: userId })
+    if (userId.trim()) {
+      setSearchParams({ user_id: userId.trim() })
+    } else {
+      setSearchParams({})
+    }
+  }
+
+  // Show user input form if no user_id
+  if (!currentUserId) {
+    return (
+      <div style={{ fontFamily: 'system-ui, sans-serif', margin: 0, padding: 0, background: '#f5f5f5', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{
+          background: 'white',
+          padding: '40px',
+          borderRadius: '32px',
+          boxShadow: '0 20px 40px rgba(16,24,40,.18)',
+          textAlign: 'center',
+          maxWidth: '400px'
+        }}>
+          <h1 style={{ fontSize: '48px', margin: '0 0 24px 0' }}>👋</h1>
+          <h2 style={{ fontSize: '24px', fontWeight: '600', margin: '0 0 16px 0' }}>
+            Welcome to EHS Mentor
+          </h2>
+          <p style={{ color: '#6b7280', marginBottom: '24px' }}>
+            Enter your User ID to access your training dashboard
+          </p>
+          <input
+            type="text"
+            placeholder="Enter User ID (e.g., u001)"
+            onChange={(e) => handleUserChange(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              border: '2px solid #2a7d2e',
+              borderRadius: '8px',
+              fontSize: '16px',
+              boxSizing: 'border-box',
+              marginBottom: '16px'
+            }}
+            onKeyPress={(e) => e.key === 'Enter' && e.currentTarget.value.trim() && handleUserChange(e.currentTarget.value)}
+          />
+          <p style={{ fontSize: '12px', color: '#9ca3af' }}>
+            No account? Contact your EHS administrator
+          </p>
+        </div>
+      </div>
+    )
   }
 
   const headerStyle = {
@@ -170,7 +217,7 @@ export function Learner({ theme = 'light' }: LearnerProps) {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {/* Simple user ID input instead of complex switcher */}
+            {/* User ID input */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '14px', opacity: '0.8' }}>User ID:</span>
               <input
@@ -186,7 +233,7 @@ export function Learner({ theme = 'light' }: LearnerProps) {
                   fontSize: '14px',
                   width: '80px'
                 }}
-                placeholder="u001"
+                placeholder="User ID"
               />
             </div>
             <button style={{
@@ -497,7 +544,7 @@ export function Learner({ theme = 'light' }: LearnerProps) {
                 )}
                 <button
                   onClick={handleChatSubmit}
-                  disabled={!chatInput.trim() || isTyping}
+                  disabled={!chatInput.trim() || isTyping || !currentUserId}
                   style={{
                     background: '#2a7d2e',
                     color: '#fff',
@@ -508,7 +555,7 @@ export function Learner({ theme = 'light' }: LearnerProps) {
                     fontSize: '16px',
                     marginTop: '12px',
                     cursor: 'pointer',
-                    opacity: (!chatInput.trim() || isTyping) ? 0.5 : 1
+                    opacity: (!chatInput.trim() || isTyping || !currentUserId) ? 0.5 : 1
                   }}
                 >
                   Ask Assistant
