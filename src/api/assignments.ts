@@ -1,29 +1,37 @@
-import apiClient from './client'
+import axios from 'axios'
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL
 
 export interface Assignment {
   course_id: string
   title: string
-  category: string
+  category?: string
   status: string
-  due_date: string
+  due_date?: string
 }
 
-export interface AssignmentsResponse {
+export interface AssignmentListResponse {
   user_id: string
   count: number
   items: Assignment[]
 }
 
-// FIXED: OpenAPI shows GET /api/assignments/list?user_id=xxx
-export const getAssignments = async (userId: string): Promise<AssignmentsResponse> => {
-  const response = await apiClient.get(`/api/assignments/list?user_id=${userId}`)
-  return response.data
-}
-
-export const reassignCourse = async (userId: string, courseId: string): Promise<void> => {
-  await apiClient.post('/api/assignments/reassign', { 
-    user_id: userId, 
-    course_id: courseId,
-    new_status: 'assigned'  // Required field per OpenAPI
-  })
+export async function getAssignments(
+  userId: string, 
+  limit: number = 100, 
+  offset: number = 0
+): Promise<AssignmentListResponse> {
+  const url = `${API_BASE_URL}/api/assignments/list?user_id=${encodeURIComponent(userId)}&limit=${limit}&offset=${offset}`
+  
+  const res = await fetch(url)
+  const data = await res.json().catch(() => ({}))
+  
+  if (!res.ok) {
+    throw { 
+      status: res.status, 
+      detail: data.detail || data 
+    }
+  }
+  
+  return data as AssignmentListResponse
 }
