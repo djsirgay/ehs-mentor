@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Layout } from '@/components/Layout'
 import { Dashboard } from '@/pages/Dashboard'
+import { Learner } from '@/pages/Learner'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -17,7 +18,8 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<Navigate to="/learner" replace />} />
+          <Route path="/learner" element={<Learner theme="light" userId="u001" />} />
           <Route
             path="/dashboard"
             element={
