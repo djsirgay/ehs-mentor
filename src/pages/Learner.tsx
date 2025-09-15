@@ -43,8 +43,8 @@ export function Learner({ theme = 'light' }: LearnerProps) {
       if (!response.ok) {
         if (response.status === 429) {
           const errorData = await response.json().catch(() => ({}))
-          const retryAfter = errorData.retry_after || 30
-          throw new Error(`RATE_LIMIT:${retryAfter}`)
+          const retryAfter = errorData.detail?.retry_after || errorData.retry_after || 30
+          throw new Error(`RATE_LIMIT:${Math.ceil(retryAfter)}`)
         }
         throw new Error(`HTTP ${response.status}`)
       }
