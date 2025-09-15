@@ -8,28 +8,14 @@ interface LearnerProps {
   theme?: 'light' | 'dark'
 }
 
-// Custom error classes for better error handling
-class NotFoundError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'NotFoundError'
-  }
-}
-
-class MethodError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'MethodError'
-  }
-}
-
 export function Learner({ theme = 'light' }: LearnerProps) {
   const [searchParams, setSearchParams] = useSearchParams()
-  const currentUserId = searchParams.get('user_id') || ''  // NO DEFAULT HARDCODE
+  const currentUserId = searchParams.get('user_id') || ''
   
   const [chatInput, setChatInput] = useState('')
   const [chatResponse, setChatResponse] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [retryCountdown, setRetryCountdown] = useState(0)
   const queryClient = useQueryClient()
 
   const { data: stats } = useQuery({
@@ -41,47 +27,59 @@ export function Learner({ theme = 'light' }: LearnerProps) {
     queryKey: ['assignments', currentUserId],
     queryFn: () => getAssignments(currentUserId),
     retry: 1,
-    enabled: !!currentUserId,  // Only fetch if user_id exists
+    enabled: !!currentUserId,
   })
 
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/chat/reply`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message, user_id: currentUserId })
-        })
-        
-        if (!response.ok) {
-          if (response.status === 404) throw new NotFoundError('Chat endpoint not found')
-          if (response.status === 405) throw new MethodError('Chat method not allowed')
-          throw new Error(`HTTP ${response.status}`)
+      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/chat/reply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+      })
+      
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        const d = data?.detail || {}
+        throw { 
+          status: res.status, 
+          code: d.code, 
+          retry_after: d.retry_after, 
+          message: d.message 
         }
-        
-        return response.json()
-      } catch (error) {
-        if (error instanceof NotFoundError || error instanceof MethodError) {
-          throw error
-        }
-        throw new Error('Network error')
       }
+      
+      return data
     },
     onMutate: () => setIsTyping(true),
     onSettled: () => setIsTyping(false),
     onSuccess: (data) => setChatResponse(data.reply || 'No response received'),
-    onError: (error) => {
-      if (error instanceof NotFoundError) {
-        setChatResponse('Chat feature is not available yet.')
-      } else if (error instanceof MethodError) {
-        setChatResponse('Chat service is temporarily unavailable.')
+    onError: async (error: any) => {
+      if (error.status === 429 && error.retry_after) {
+        // Auto-retry with countdown for 429
+        const retryAfter = Math.ceil(error.retry_after)
+        setChatResponse(`🔄 ${error.code}: ${error.message} — retrying in ${retryAfter}s`)
+        
+        setRetryCountdown(retryAfter)
+        const countdown = setInterval(() => {
+          setRetryCountdown(prev => {
+            if (prev <= 1) {
+              clearInterval(countdown)
+              // Retry the request
+              chatMutation.mutate(chatInput)
+              return 0
+            }
+            setChatResponse(`🔄 ${error.code}: ${error.message} — retrying in ${prev - 1}s`)
+            return prev - 1
+          })
+        }, 1000)
       } else {
-        setChatResponse('Sorry, I encountered an error. Please try again.')
+        // Show system error with code
+        setChatResponse(`❌ ${error.code || 'error'}: ${error.message || 'Unknown error'}`)
       }
     }
   })
 
-  // Clear chat when user changes
   useEffect(() => {
     setChatResponse('')
     setChatInput('')
@@ -90,11 +88,10 @@ export function Learner({ theme = 'light' }: LearnerProps) {
   const completedCount = assignments?.items?.filter(a => a.status === 'completed').length || 0
   const totalCount = assignments?.count || 0
   const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
-
   const nextAssignment = assignments?.items?.find(a => a.status === 'assigned')
 
   const handleChatSubmit = () => {
-    if (!chatInput.trim() || !currentUserId) return
+    if (!chatInput.trim() || retryCountdown > 0) return
     chatMutation.mutate(chatInput)
     setChatInput('')
   }
@@ -107,7 +104,6 @@ export function Learner({ theme = 'light' }: LearnerProps) {
     }
   }
 
-  // Show user input form if no user_id
   if (!currentUserId) {
     return (
       <div style={{ fontFamily: 'system-ui, sans-serif', margin: 0, padding: 0, background: '#f5f5f5', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -217,7 +213,6 @@ export function Learner({ theme = 'light' }: LearnerProps) {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {/* User ID input */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '14px', opacity: '0.8' }}>User ID:</span>
               <input
@@ -544,7 +539,7 @@ export function Learner({ theme = 'light' }: LearnerProps) {
                 )}
                 <button
                   onClick={handleChatSubmit}
-                  disabled={!chatInput.trim() || isTyping || !currentUserId}
+                  disabled={!chatInput.trim() || isTyping || retryCountdown > 0}
                   style={{
                     background: '#2a7d2e',
                     color: '#fff',
@@ -555,10 +550,10 @@ export function Learner({ theme = 'light' }: LearnerProps) {
                     fontSize: '16px',
                     marginTop: '12px',
                     cursor: 'pointer',
-                    opacity: (!chatInput.trim() || isTyping || !currentUserId) ? 0.5 : 1
+                    opacity: (!chatInput.trim() || isTyping || retryCountdown > 0) ? 0.5 : 1
                   }}
                 >
-                  Ask Assistant
+                  {retryCountdown > 0 ? `Retry in ${retryCountdown}s` : 'Ask Assistant'}
                 </button>
               </div>
             </div>
