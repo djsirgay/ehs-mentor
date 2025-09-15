@@ -17,6 +17,7 @@ export function Learner({ theme = 'light' }: LearnerProps) {
   const [isTyping, setIsTyping] = useState(false)
   const [retryCountdown, setRetryCountdown] = useState(0)
   const [lastMessage, setLastMessage] = useState('')
+  const [autoRetryUsed, setAutoRetryUsed] = useState(false)
   const queryClient = useQueryClient()
 
   const { data: stats } = useQuery({
@@ -40,10 +41,10 @@ export function Learner({ theme = 'light' }: LearnerProps) {
       })
       
       if (!response.ok) {
-        const errorText = await response.text()
-        // Check for rate limit in both 429 status and 500 with throttling text
-        if (response.status === 429 || (response.status === 500 && errorText.includes('Too many requests'))) {
-          throw new Error('RATE_LIMIT')
+        if (response.status === 429) {
+          const errorData = await response.json().catch(() => ({}))
+          const retryAfter = errorData.retry_after || 30
+          throw new Error(`RATE_LIMIT:${retryAfter}`)
         }
         throw new Error(`HTTP ${response.status}`)
       }
@@ -54,26 +55,34 @@ export function Learner({ theme = 'light' }: LearnerProps) {
     onSettled: () => setIsTyping(false),
     onSuccess: (data) => setChatResponse(data.reply || 'No response received'),
     onError: (error: Error) => {
-      if (error.message === 'RATE_LIMIT') {
-        // Start countdown and auto-retry
-        setChatResponse('⏳ Rate limit reached. Retrying in 60 seconds...')
-        setRetryCountdown(60)
+      if (error.message.startsWith('RATE_LIMIT:')) {
+        const retryAfter = parseInt(error.message.split(':')[1]) || 30
         
-        const countdown = setInterval(() => {
-          setRetryCountdown(prev => {
-            if (prev <= 1) {
-              clearInterval(countdown)
-              setChatResponse('🔄 Retrying your message...')
-              // Auto-retry with last message
-              setTimeout(() => {
-                chatMutation.mutate(lastMessage)
-              }, 1000)
-              return 0
-            }
-            setChatResponse(`⏳ Rate limit reached. Retrying in ${prev - 1} seconds...`)
-            return prev - 1
-          })
-        }, 1000)
+        if (!autoRetryUsed) {
+          // First 429: auto-retry once
+          setAutoRetryUsed(true)
+          setChatResponse(`⏳ Rate limited. Auto-retrying in ${retryAfter}s...`)
+          setRetryCountdown(retryAfter)
+          
+          const countdown = setInterval(() => {
+            setRetryCountdown(prev => {
+              if (prev <= 1) {
+                clearInterval(countdown)
+                setChatResponse('🔄 Retrying...')
+                setTimeout(() => {
+                  chatMutation.mutate(lastMessage)
+                }, 500)
+                return 0
+              }
+              setChatResponse(`⏳ Rate limited. Auto-retrying in ${prev - 1}s...`)
+              return prev - 1
+            })
+          }, 1000)
+        } else {
+          // Second 429: show manual retry
+          setChatResponse('⏳ Rate limited. Click "Retry" to try again.')
+          setRetryCountdown(0)
+        }
       } else {
         setChatResponse(`❌ Error: ${error.message}`)
       }
@@ -83,6 +92,7 @@ export function Learner({ theme = 'light' }: LearnerProps) {
   useEffect(() => {
     setChatResponse('')
     setChatInput('')
+    setAutoRetryUsed(false)
   }, [currentUserId])
 
   const completedCount = assignments?.items?.filter(a => a.status === 'completed').length || 0
@@ -93,8 +103,15 @@ export function Learner({ theme = 'light' }: LearnerProps) {
   const handleChatSubmit = () => {
     if (!chatInput.trim() || retryCountdown > 0) return
     setLastMessage(chatInput)
+    setAutoRetryUsed(false)
     chatMutation.mutate(chatInput)
     setChatInput('')
+  }
+  
+  const handleRetry = () => {
+    if (!lastMessage || retryCountdown > 0) return
+    setAutoRetryUsed(false)
+    chatMutation.mutate(lastMessage)
   }
 
   const handleUserChange = (userId: string) => {
@@ -538,24 +555,45 @@ export function Learner({ theme = 'light' }: LearnerProps) {
                     )}
                   </div>
                 )}
-                <button
-                  onClick={handleChatSubmit}
-                  disabled={!chatInput.trim() || isTyping || retryCountdown > 0}
-                  style={{
-                    background: '#2a7d2e',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '16px',
-                    padding: '12px 20px',
-                    fontWeight: '700',
-                    fontSize: '16px',
-                    marginTop: '12px',
-                    cursor: 'pointer',
-                    opacity: (!chatInput.trim() || isTyping || retryCountdown > 0) ? 0.5 : 1
-                  }}
-                >
-                  {retryCountdown > 0 ? `Retry in ${retryCountdown}s` : 'Ask Assistant'}
-                </button>
+                <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                  <button
+                    onClick={handleChatSubmit}
+                    disabled={!chatInput.trim() || isTyping || retryCountdown > 0}
+                    style={{
+                      flex: 1,
+                      background: '#2a7d2e',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '16px',
+                      padding: '12px 20px',
+                      fontWeight: '700',
+                      fontSize: '16px',
+                      cursor: 'pointer',
+                      opacity: (!chatInput.trim() || isTyping || retryCountdown > 0) ? 0.5 : 1
+                    }}
+                  >
+                    {retryCountdown > 0 ? `Wait ${retryCountdown}s` : 'Ask Assistant'}
+                  </button>
+                  {chatResponse.includes('Click "Retry"') && (
+                    <button
+                      onClick={handleRetry}
+                      disabled={!lastMessage || isTyping}
+                      style={{
+                        background: '#ff8533',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '16px',
+                        padding: '12px 20px',
+                        fontWeight: '700',
+                        fontSize: '16px',
+                        cursor: 'pointer',
+                        opacity: (!lastMessage || isTyping) ? 0.5 : 1
+                      }}
+                    >
+                      Retry
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
