@@ -19,7 +19,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Navigate to="/learner" replace />} />
-          <Route path="/learner" element={<Learner theme="light" userId="u001" />} />
+          <Route path="/learner" element={<Learner theme="light" />} />
           <Route
             path="/dashboard"
             element={

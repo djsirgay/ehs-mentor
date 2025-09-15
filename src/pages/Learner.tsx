@@ -1,25 +1,28 @@
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useSearchParams } from 'react-router-dom'
 import { getStats } from '@/api/stats'
-import { getAssignments, reassignCourse } from '@/api/assignments'
+import { getAssignments } from '@/api/assignments'
 import { getUserProfile } from '@/api/user'
 import { UserSwitcher } from '@/components/UserSwitcher'
 
 interface LearnerProps {
   theme?: 'light' | 'dark'
-  initialUserId?: string
 }
 
-export function Learner({ theme = 'light', initialUserId = 'u001' }: LearnerProps) {
-  const [currentUserId, setCurrentUserId] = useState(initialUserId)
+export function Learner({ theme = 'light' }: LearnerProps) {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const currentUserId = searchParams.get('user_id') || 'u001'
+  
   const [chatInput, setChatInput] = useState('')
   const [chatResponse, setChatResponse] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const queryClient = useQueryClient()
 
-  const { data: userProfile } = useQuery({
+  const { data: userProfile, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['user', currentUserId],
     queryFn: () => getUserProfile(currentUserId),
+    retry: 1,
   })
 
   const { data: stats } = useQuery({
@@ -27,9 +30,10 @@ export function Learner({ theme = 'light', initialUserId = 'u001' }: LearnerProp
     queryFn: getStats,
   })
 
-  const { data: assignments, isLoading } = useQuery({
+  const { data: assignments, isLoading: assignmentsLoading, error: assignmentsError } = useQuery({
     queryKey: ['assignments', currentUserId],
     queryFn: () => getAssignments(currentUserId),
+    retry: 1,
   })
 
   const chatMutation = useMutation({
@@ -67,10 +71,7 @@ export function Learner({ theme = 'light', initialUserId = 'u001' }: LearnerProp
   }
 
   const handleUserChange = (userId: string) => {
-    setCurrentUserId(userId)
-    // Invalidate queries for new user
-    queryClient.invalidateQueries({ queryKey: ['assignments', userId] })
-    queryClient.invalidateQueries({ queryKey: ['user', userId] })
+    setSearchParams({ user_id: userId })
   }
 
   const headerStyle = {
@@ -117,6 +118,39 @@ export function Learner({ theme = 'light', initialUserId = 'u001' }: LearnerProp
     transition: 'transform .18s ease'
   }
 
+  // Error states
+  if (profileError) {
+    return (
+      <div style={{ fontFamily: 'system-ui, sans-serif', margin: 0, padding: 0, background: '#f5f5f5' }}>
+        <div style={{ ...containerStyle, textAlign: 'center', paddingTop: '100px' }}>
+          <div style={{ ...heroStyle, maxWidth: '500px', margin: '0 auto' }}>
+            <h1 style={{ fontSize: '48px', margin: '0 0 24px 0' }}>❌</h1>
+            <h2 style={{ fontSize: '24px', fontWeight: '600', margin: '0 0 16px 0' }}>
+              User Not Found
+            </h2>
+            <p style={{ color: '#6b7280', marginBottom: '24px' }}>
+              User ID "{currentUserId}" does not exist or API is unavailable.
+            </p>
+            <button
+              onClick={() => window.location.reload()}
+              style={{
+                background: '#2a7d2e',
+                color: 'white',
+                border: 'none',
+                borderRadius: '16px',
+                padding: '12px 24px',
+                fontWeight: '700',
+                cursor: 'pointer'
+              }}
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div style={{ fontFamily: 'system-ui, sans-serif', margin: 0, padding: 0, background: '#f5f5f5' }}>
       {/* Header */}
@@ -132,7 +166,7 @@ export function Learner({ theme = 'light', initialUserId = 'u001' }: LearnerProp
             <div>
               <div style={{ fontSize: '28px', fontWeight: '600' }}>
                 👋 Hello, <strong style={{ textDecoration: 'underline', textDecorationThickness: '1px', textUnderlineOffset: '4px' }}>
-                  {userProfile?.name || 'Loading...'}
+                  {profileLoading ? 'Loading...' : userProfile?.display_name || 'Unknown User'}
                 </strong>
               </div>
               <div style={{ fontSize: '20px', opacity: '.8', marginTop: '4px', fontStyle: 'italic' }}>
@@ -268,7 +302,9 @@ export function Learner({ theme = 'light', initialUserId = 'u001' }: LearnerProp
               ) : (
                 <div>
                   <p style={{ opacity: '.85', fontSize: '18px' }}>
-                    🎉 All training assignments completed!
+                    {assignmentsLoading ? '⏳ Loading assignments...' : 
+                     assignmentsError ? '❌ Failed to load assignments' :
+                     '🎉 All training assignments completed!'}
                   </p>
                 </div>
               )}
@@ -281,8 +317,37 @@ export function Learner({ theme = 'light', initialUserId = 'u001' }: LearnerProp
           <div style={heroStyle}>
             <h1 style={{ fontSize: '48px', fontWeight: '800', margin: '0 0 24px 0' }}>📚 All Training</h1>
             <div>
-              {isLoading ? (
-                <div style={{ textAlign: 'center', padding: '40px' }}>Loading assignments for {userProfile?.name}...</div>
+              {assignmentsLoading ? (
+                <div style={{ textAlign: 'center', padding: '40px' }}>
+                  <div style={{ fontSize: '18px', marginBottom: '16px' }}>⏳ Loading assignments...</div>
+                  <div style={{ color: '#6b7280' }}>
+                    Fetching training data for {userProfile?.display_name || currentUserId}
+                  </div>
+                </div>
+              ) : assignmentsError ? (
+                <div style={{ textAlign: 'center', padding: '40px' }}>
+                  <div style={{ fontSize: '48px', marginBottom: '16px' }}>❌</div>
+                  <div style={{ fontSize: '18px', marginBottom: '16px', fontWeight: '600' }}>
+                    Failed to Load Assignments
+                  </div>
+                  <div style={{ color: '#6b7280', marginBottom: '24px' }}>
+                    Could not fetch training assignments for {userProfile?.display_name || currentUserId}
+                  </div>
+                  <button
+                    onClick={() => queryClient.invalidateQueries({ queryKey: ['assignments', currentUserId] })}
+                    style={{
+                      background: '#2a7d2e',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '16px',
+                      padding: '12px 24px',
+                      fontWeight: '700',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Retry
+                  </button>
+                </div>
               ) : assignments?.items?.length ? (
                 assignments.items.map((assignment) => (
                   <div key={assignment.course_id} style={{
@@ -356,7 +421,13 @@ export function Learner({ theme = 'light', initialUserId = 'u001' }: LearnerProp
                 ))
               ) : (
                 <div style={{ textAlign: 'center', padding: '40px' }}>
-                  No training assignments found for {userProfile?.name}.
+                  <div style={{ fontSize: '48px', marginBottom: '16px' }}>📚</div>
+                  <div style={{ fontSize: '18px', marginBottom: '16px', fontWeight: '600' }}>
+                    No Training Assignments
+                  </div>
+                  <div style={{ color: '#6b7280' }}>
+                    {userProfile?.display_name || currentUserId} has no training assignments yet.
+                  </div>
                 </div>
               )}
             </div>
