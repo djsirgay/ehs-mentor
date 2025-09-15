@@ -16,6 +16,7 @@ export function Learner({ theme = 'light' }: LearnerProps) {
   const [chatResponse, setChatResponse] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [retryCountdown, setRetryCountdown] = useState(0)
+  const [lastMessage, setLastMessage] = useState('')
   const queryClient = useQueryClient()
 
   const { data: stats } = useQuery({
@@ -32,50 +33,48 @@ export function Learner({ theme = 'light' }: LearnerProps) {
 
   const chatMutation = useMutation({
     mutationFn: async (message: string) => {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/chat/reply`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/chat/reply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message })
       })
       
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        const d = data?.detail || {}
-        throw { 
-          status: res.status, 
-          code: d.code, 
-          retry_after: d.retry_after, 
-          message: d.message 
+      if (!response.ok) {
+        const errorText = await response.text()
+        if (response.status === 500 && errorText.includes('Too many requests')) {
+          throw new Error('RATE_LIMIT')
         }
+        throw new Error(`HTTP ${response.status}`)
       }
       
-      return data
+      return response.json()
     },
     onMutate: () => setIsTyping(true),
     onSettled: () => setIsTyping(false),
     onSuccess: (data) => setChatResponse(data.reply || 'No response received'),
-    onError: async (error: any) => {
-      if (error.status === 429 && error.retry_after) {
-        // Auto-retry with countdown for 429
-        const retryAfter = Math.ceil(error.retry_after)
-        setChatResponse(`🔄 ${error.code}: ${error.message} — retrying in ${retryAfter}s`)
+    onError: (error: Error) => {
+      if (error.message === 'RATE_LIMIT') {
+        // Start countdown and auto-retry
+        setChatResponse('⏳ Rate limit reached. Retrying in 60 seconds...')
+        setRetryCountdown(60)
         
-        setRetryCountdown(retryAfter)
         const countdown = setInterval(() => {
           setRetryCountdown(prev => {
             if (prev <= 1) {
               clearInterval(countdown)
-              // Retry the request
-              chatMutation.mutate(chatInput)
+              setChatResponse('🔄 Retrying your message...')
+              // Auto-retry with last message
+              setTimeout(() => {
+                chatMutation.mutate(lastMessage)
+              }, 1000)
               return 0
             }
-            setChatResponse(`🔄 ${error.code}: ${error.message} — retrying in ${prev - 1}s`)
+            setChatResponse(`⏳ Rate limit reached. Retrying in ${prev - 1} seconds...`)
             return prev - 1
           })
         }, 1000)
       } else {
-        // Show system error with code
-        setChatResponse(`❌ ${error.code || 'error'}: ${error.message || 'Unknown error'}`)
+        setChatResponse(`❌ Error: ${error.message}`)
       }
     }
   })
@@ -92,6 +91,7 @@ export function Learner({ theme = 'light' }: LearnerProps) {
 
   const handleChatSubmit = () => {
     if (!chatInput.trim() || retryCountdown > 0) return
+    setLastMessage(chatInput)
     chatMutation.mutate(chatInput)
     setChatInput('')
   }
@@ -333,7 +333,7 @@ export function Learner({ theme = 'light' }: LearnerProps) {
                       background: nextAssignment.category === 'chemical' ? '#ff4444' : '#ffe3a3',
                       color: nextAssignment.category === 'chemical' ? 'white' : '#000'
                     }}>
-                      {nextAssignment.category.toUpperCase()}
+                      {nextAssignment.category?.toUpperCase()}
                     </span>
                     <span style={{ fontSize: '13px', opacity: '.7' }}>
                       Due: {nextAssignment.due_date}
