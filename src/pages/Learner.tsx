@@ -41,7 +41,8 @@ export function Learner({ theme = 'light' }: LearnerProps) {
       
       if (!response.ok) {
         const errorText = await response.text()
-        if (response.status === 500 && errorText.includes('Too many requests')) {
+        // Check for rate limit in both 429 status and 500 with throttling text
+        if (response.status === 429 || (response.status === 500 && errorText.includes('Too many requests'))) {
           throw new Error('RATE_LIMIT')
         }
         throw new Error(`HTTP ${response.status}`)
