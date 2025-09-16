@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useState, useEffect } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
 import { getAssignments } from '@/api/assignments'
 
@@ -9,12 +9,83 @@ interface LearnerProps {
 
 export function Learner({ theme = 'light' }: LearnerProps) {
   const [searchParams, setSearchParams] = useSearchParams()
-  const currentUserId = searchParams.get('user_id') || 'u001'
+  const currentUserId = searchParams.get('user_id') || ''
+  
+  const [chatInput, setChatInput] = useState('')
+  const [chatResponse, setChatResponse] = useState('')
+  const [isTyping, setIsTyping] = useState(false)
+  const [retryCountdown, setRetryCountdown] = useState(0)
+  const [lastMessage, setLastMessage] = useState('')
+  const [autoRetryUsed, setAutoRetryUsed] = useState(false)
+  const queryClient = useQueryClient()
   
   const { data: assignments, isLoading, error } = useQuery({
     queryKey: ['assignments', currentUserId],
     queryFn: () => getAssignments(currentUserId, 100, 0),
+    retry: 1,
+    enabled: !!currentUserId,
   })
+
+  const chatMutation = useMutation({
+    mutationFn: async (message: string) => {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/chat/reply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message })
+      })
+      
+      if (!response.ok) {
+        if (response.status === 429) {
+          const errorData = await response.json().catch(() => ({}))
+          const retryAfter = errorData.detail?.retry_after || errorData.retry_after || 30
+          throw new Error(`RATE_LIMIT:${Math.ceil(retryAfter)}`)
+        }
+        throw new Error(`HTTP ${response.status}`)
+      }
+      
+      return response.json()
+    },
+    onMutate: () => setIsTyping(true),
+    onSettled: () => setIsTyping(false),
+    onSuccess: (data) => setChatResponse(data.reply || 'No response received'),
+    onError: (error: Error) => {
+      if (error.message.startsWith('RATE_LIMIT:')) {
+        const retryAfter = parseInt(error.message.split(':')[1]) || 30
+        
+        if (!autoRetryUsed) {
+          setAutoRetryUsed(true)
+          setChatResponse(`⏳ Rate limited. Auto-retrying in ${retryAfter}s...`)
+          setRetryCountdown(retryAfter)
+          
+          const countdown = setInterval(() => {
+            setRetryCountdown(prev => {
+              if (prev <= 1) {
+                clearInterval(countdown)
+                setChatResponse('🔄 Retrying...')
+                setTimeout(() => {
+                  chatMutation.mutate(lastMessage)
+                }, 500)
+                return 0
+              }
+              setChatResponse(`⏳ Rate limited. Auto-retrying in ${prev - 1}s...`)
+              return prev - 1
+            })
+          }, 1000)
+        } else {
+          setChatResponse('⏳ Rate limited. Click "Retry" to try again.')
+          setRetryCountdown(0)
+        }
+      } else {
+        setChatResponse(`❌ Error: ${error.message}`)
+      }
+    }
+  })
+
+  useEffect(() => {
+    setChatResponse('')
+    setChatInput('')
+    setAutoRetryUsed(false)
+  }, [currentUserId])
 
   const completedCount = assignments?.items?.filter(item => item.status === 'completed').length || 0
   const totalCount = assignments?.count || 0
@@ -58,6 +129,69 @@ export function Learner({ theme = 'light' }: LearnerProps) {
       'ppe': 'medium'
     }
     return priorities[category as keyof typeof priorities] || 'medium'
+  }
+
+  const handleChatSubmit = () => {
+    if (!chatInput.trim() || retryCountdown > 0) return
+    setLastMessage(chatInput)
+    setAutoRetryUsed(false)
+    chatMutation.mutate(chatInput)
+    setChatInput('')
+  }
+  
+  const handleRetry = () => {
+    if (!lastMessage || retryCountdown > 0) return
+    setAutoRetryUsed(false)
+    chatMutation.mutate(lastMessage)
+  }
+
+  const handleUserChange = (userId: string) => {
+    if (userId.trim()) {
+      setSearchParams({ user_id: userId.trim() })
+    } else {
+      setSearchParams({})
+    }
+  }
+
+  if (!currentUserId) {
+    return (
+      <div style={{ fontFamily: 'system-ui, sans-serif', margin: 0, padding: 0, background: '#f5f5f5', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{
+          background: 'white',
+          padding: '40px',
+          borderRadius: '32px',
+          boxShadow: '0 20px 40px rgba(16,24,40,.18)',
+          textAlign: 'center',
+          maxWidth: '400px'
+        }}>
+          <h1 style={{ fontSize: '48px', margin: '0 0 24px 0' }}>👋</h1>
+          <h2 style={{ fontSize: '24px', fontWeight: '600', margin: '0 0 16px 0' }}>
+            Welcome to EHS Mentor
+          </h2>
+          <p style={{ color: '#6b7280', marginBottom: '24px' }}>
+            Enter your User ID to access your training dashboard
+          </p>
+          <input
+            type="text"
+            placeholder="Enter User ID (e.g., u001)"
+            onChange={(e) => handleUserChange(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              border: '2px solid #2a7d2e',
+              borderRadius: '8px',
+              fontSize: '16px',
+              boxSizing: 'border-box',
+              marginBottom: '16px'
+            }}
+            onKeyPress={(e) => e.key === 'Enter' && e.currentTarget.value.trim() && handleUserChange(e.currentTarget.value)}
+          />
+          <p style={{ fontSize: '12px', color: '#9ca3af' }}>
+            No account? Contact your EHS administrator
+          </p>
+        </div>
+      </div>
+    )
   }
 
   const renderTrainingCard = (assignment: any) => {
@@ -189,7 +323,9 @@ export function Learner({ theme = 'light' }: LearnerProps) {
             />
             <div>
               <div style={{ fontSize: '28px', fontWeight: 600 }}>
-                👋 Hello, <strong>Merry Warner</strong>
+                👋 Hello, <strong style={{ textDecoration: 'underline', textDecorationThickness: '1px', textUnderlineOffset: '4px' }}>
+                  {currentUserId}
+                </strong>
               </div>
               <div style={{ fontSize: '20px', opacity: 0.8, marginTop: '4px', fontStyle: 'italic' }}>
                 ✨ A perfect day to make yourself safer
@@ -197,10 +333,28 @@ export function Learner({ theme = 'light' }: LearnerProps) {
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '14px', opacity: '0.8' }}>User ID:</span>
+              <input
+                type="text"
+                value={currentUserId}
+                onChange={(e) => handleUserChange(e.target.value)}
+                style={{
+                  background: 'rgba(255,255,255,0.2)',
+                  color: 'white',
+                  border: '1px solid rgba(255,255,255,0.3)',
+                  borderRadius: '6px',
+                  padding: '6px 10px',
+                  fontSize: '14px',
+                  width: '80px'
+                }}
+                placeholder="User ID"
+              />
+            </div>
             <button style={{
-              background: '#2a7d2e',
-              color: '#fff',
-              border: 'none',
+              background: '#fff',
+              color: '#2a7d2e',
+              border: '2px solid #2a7d2e',
               borderRadius: '16px',
               padding: '12px 20px',
               fontWeight: 700,
@@ -423,51 +577,100 @@ export function Learner({ theme = 'light' }: LearnerProps) {
             <div>
               {/* AI Assistant Card */}
               <div style={{
-                background: '#fff',
+                background: '#e8f5e8',
                 borderRadius: '24px',
                 padding: '18px',
                 boxShadow: '0 6px 16px rgba(21, 94, 21, .15)',
-                marginBottom: '14px',
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '16px'
+                marginBottom: '14px'
               }}>
-                <div style={{ flex: 1 }}>
+                <div style={{ width: '100%' }}>
                   <h3 style={{
                     fontWeight: 800,
                     fontSize: '26px',
-                    margin: '0 0 8px 0',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px'
+                    margin: '0 0 16px 0',
+                    lineHeight: 1.2
                   }}>
                     🤖 AI Safety Assistant
                   </h3>
-                  <p style={{ margin: '8px 0 16px 0', lineHeight: 1.5, color: 'rgba(0,0,0,.7)', fontSize: '17px' }}>
+                  <p style={{ margin: '0 0 16px 0', lineHeight: 1.5, color: 'rgba(0,0,0,.7)', fontSize: '17px' }}>
                     Ask questions about EHS policies and procedures
                   </p>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '15px' }}>
-                    <span>Available 24/7</span>
-                    <span>Instant responses</span>
+                  <div style={{ margin: '16px 0' }}>
+                    <input
+                      type="text"
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleChatSubmit()}
+                      placeholder="e.g., What PPE do I need in the lab?"
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        border: '2px solid #2a7d2e',
+                        borderRadius: '8px',
+                        fontSize: '16px',
+                        boxSizing: 'border-box'
+                      }}
+                    />
                   </div>
-                </div>
-                <div style={{ flexShrink: 0, marginLeft: 'auto', alignSelf: 'center' }}>
-                  <button
-                    style={{
-                      background: '#ff8533',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '16px',
-                      padding: '12px 20px',
-                      fontWeight: 700,
-                      fontSize: '16px',
-                      minWidth: '120px',
-                      cursor: 'pointer'
-                    }}
-                    onClick={() => alert('AI Safety Assistant feature coming soon!')}
-                  >
-                    Ask AI
-                  </button>
+                  {(chatResponse || isTyping) && (
+                    <div style={{
+                      margin: '16px 0',
+                      padding: '16px',
+                      background: '#f9f9f9',
+                      borderRadius: '8px',
+                      minHeight: '60px'
+                    }}>
+                      {isTyping ? (
+                        <div style={{ color: '#666' }}>🤔 Thinking...</div>
+                      ) : (
+                        <>
+                          <div style={{ color: '#2a7d2e', fontWeight: 'bold', marginBottom: '8px' }}>
+                            🤖 EHS Assistant:
+                          </div>
+                          <div>{chatResponse}</div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                    <button
+                      onClick={handleChatSubmit}
+                      disabled={!chatInput.trim() || isTyping || retryCountdown > 0}
+                      style={{
+                        flex: 1,
+                        background: '#2a7d2e',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '16px',
+                        padding: '12px 20px',
+                        fontWeight: 700,
+                        fontSize: '16px',
+                        cursor: 'pointer',
+                        opacity: (!chatInput.trim() || isTyping || retryCountdown > 0) ? 0.5 : 1
+                      }}
+                    >
+                      {retryCountdown > 0 ? `Wait ${retryCountdown}s` : 'Ask Assistant'}
+                    </button>
+                    {chatResponse.includes('Click "Retry"') && (
+                      <button
+                        onClick={handleRetry}
+                        disabled={!lastMessage || isTyping}
+                        style={{
+                          background: '#ff8533',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '16px',
+                          padding: '12px 20px',
+                          fontWeight: 700,
+                          fontSize: '16px',
+                          cursor: 'pointer',
+                          opacity: (!lastMessage || isTyping) ? 0.5 : 1
+                        }}
+                      >
+                        Retry
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
