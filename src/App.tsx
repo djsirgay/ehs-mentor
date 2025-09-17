@@ -4,7 +4,6 @@ import { Layout } from '@/components/Layout'
 import { Dashboard } from '@/pages/Dashboard'
 import { Learner } from '@/pages/Learner'
 import { Admin } from '@/pages/Admin'
-import { Upload } from '@/pages/Upload'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,7 +39,11 @@ function App() {
           />
           <Route
             path="/documents"
-            element={<Upload />}
+            element={
+              <Layout theme="light">
+                <div>Documents Page (Coming Soon)</div>
+              </Layout>
+            }
           />
           <Route
             path="/admin"
