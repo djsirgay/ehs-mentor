@@ -16,11 +16,19 @@ branch_labels = None
 depends_on = None
 
 def upgrade():
-    # Add columns for tracking training progress
-    op.add_column('assignments', sa.Column('started_at', sa.DateTime(), nullable=True))
-    op.add_column('assignments', sa.Column('completed_at', sa.DateTime(), nullable=True))
-    op.add_column('assignments', sa.Column('score', sa.Integer(), nullable=True))
-    op.add_column('assignments', sa.Column('completion_time', sa.Integer(), nullable=True))
+    # Add columns for tracking training progress (with existence checks)
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    columns = [col['name'] for col in inspector.get_columns('assignments')]
+    
+    if 'started_at' not in columns:
+        op.add_column('assignments', sa.Column('started_at', sa.DateTime(), nullable=True))
+    if 'completed_at' not in columns:
+        op.add_column('assignments', sa.Column('completed_at', sa.DateTime(), nullable=True))
+    if 'score' not in columns:
+        op.add_column('assignments', sa.Column('score', sa.Integer(), nullable=True))
+    if 'completion_time' not in columns:
+        op.add_column('assignments', sa.Column('completion_time', sa.Integer(), nullable=True))
 
 def downgrade():
     op.drop_column('assignments', 'completion_time')
