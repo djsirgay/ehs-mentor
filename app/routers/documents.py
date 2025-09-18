@@ -226,8 +226,8 @@ def process_document(payload: ProcessDoc):
     try:
         role_matches = extract_roles(text, [{'name': r['name']} for r in all_roles])  # [{role_name, confidence, reasoning}]
     except Exception as e:
-        # Fallback if role extraction fails
-        role_matches = [{'role_name': 'lab_technician', 'confidence': 0.7, 'reasoning': 'Default role due to extraction error'}]
+        # If AI fails, no roles detected
+        role_matches = []
 
     # 5) upsert into doc_course_map
     mapped_inserted, mapped_skipped = 0, 0
@@ -314,9 +314,17 @@ def process_document(payload: ProcessDoc):
 
     return {
         "doc_id": payload.doc_id,
-        "detected_roles": applied_roles,
-        "role_analysis": [{"role": r['role_name'], "confidence": r['confidence'], "reasoning": r['reasoning']} for r in role_matches],
-        "mapped": {"inserted": mapped_inserted, "skipped": mapped_skipped},
-        "promoted": {"inserted": rules_inserted, "skipped": rules_skipped},
-        "assignments": {"inserted": assignments_inserted},
+        "analysis": {
+            "courses_found": len(matches),
+            "courses_details": [{"course_id": m["course_id"], "confidence": m["confidence"], "evidence": m["evidence"][:100]} for m in matches],
+            "roles_analyzed": len(role_matches),
+            "roles_details": [{"role": r['role_name'], "confidence": r['confidence'], "reasoning": r['reasoning'][:100]} for r in role_matches],
+            "roles_applied": applied_roles
+        },
+        "results": {
+            "course_mappings": {"inserted": mapped_inserted, "skipped": mapped_skipped, "reason_skipped": "Already exists in database"},
+            "rule_requirements": {"inserted": rules_inserted, "skipped": rules_skipped, "reason_skipped": "Rule already exists"},
+            "user_assignments": {"inserted": assignments_inserted, "reason_skipped": "User already has assignment or completed course"}
+        },
+        "summary": f"Found {len(matches)} courses, applied to {len(applied_roles)} roles, created {assignments_inserted} new assignments"
     }
