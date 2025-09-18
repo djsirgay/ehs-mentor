@@ -18,7 +18,7 @@ async def upload_document(
         raise HTTPException(status_code=400, detail="Only PDF files are supported")
 
     # Создаем папку если её нет
-    data_dir = "/app/data"
+    data_dir = "./data"
     os.makedirs(data_dir, exist_ok=True)
     
     dest = os.path.join(data_dir, fname)
@@ -45,23 +45,7 @@ async def upload_document(
             (source, title, dest),
         )
         result = cur.fetchone()
-        if result is None:
-            raise HTTPException(status_code=500, detail="Failed to insert document")
-        
-        # Отладка: посмотрим что возвращает fetchone
-        logger.error(f"fetchone result type: {type(result)}, value: {result}")
-        
-        try:
-            if hasattr(result, 'doc_id'):
-                doc_id = result.doc_id
-            elif isinstance(result, (list, tuple)) and len(result) > 0:
-                doc_id = result[0]
-            else:
-                # Попробуем получить первое значение любым способом
-                doc_id = list(result)[0] if result else None
-        except Exception as e:
-            logger.error(f"Error extracting doc_id: {e}")
-            raise HTTPException(status_code=500, detail=f"Failed to extract doc_id: {e}")
+        doc_id = result['doc_id']
         conn.commit()
 
     return {"doc_id": doc_id, "filename": fname, "bytes": size, "path": dest}

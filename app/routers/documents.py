@@ -32,7 +32,7 @@ def register_document(payload: RegisterDoc):
             "INSERT INTO documents (source, title, path) VALUES (%s, %s, %s) RETURNING doc_id",
             (payload.source, payload.title, path),
         )
-        doc_id = cur.fetchone()[0]
+        doc_id = cur.fetchone()['doc_id']
         conn.commit()
 
     return {"doc_id": doc_id, "path": path, "chars_preview": len(preview), "preview": preview[:800]}
@@ -49,7 +49,7 @@ def map_document(payload: MapDoc):
         row = cur.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Document not found")
-        path = row[0]
+        path = row['path']
 
     # 2) вытащим текст
     try:
@@ -96,11 +96,11 @@ def promote_document_courses(payload: PromoteReq):
         r = cur.fetchone()
         if not r:
             raise HTTPException(status_code=500, detail="Cannot resolve role_id")
-        role_id = r[0]
+        role_id = r['role_id']
 
         # 2) берём курсы из doc_course_map
         cur.execute("SELECT course_id FROM doc_course_map WHERE doc_id=%s", (payload.doc_id,))
-        courses = [row[0] for row in cur.fetchall()]
+        courses = [row['course_id'] for row in cur.fetchall()]
         if not courses:
             return {"inserted": 0, "skipped": 0, "role": payload.role, "courses": []}
 
@@ -137,7 +137,7 @@ def extract_document_courses(payload: ExtractDoc):
         row = cur.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Document not found")
-        path = row[0]
+        path = row['path']
 
     # 2) читаем текст
     try:
@@ -150,7 +150,7 @@ def extract_document_courses(payload: ExtractDoc):
     # 3) каталог курсов для модели
     with get_conn() as conn, conn.cursor() as cur:
         cur.execute("SELECT course_id, title FROM courses")
-        catalog = [{"course_id": r[0], "title": r[1]} for r in cur.fetchall()]
+        catalog = [{"course_id": r['course_id'], "title": r['title']} for r in cur.fetchall()]
     known_ids = {c["course_id"] for c in catalog}
 
     # 4) зовём LLM
@@ -199,7 +199,7 @@ def process_document(payload: ProcessDoc):
         row = cur.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Document not found")
-        path = row[0]
+        path = row['path']
 
     # 2) read text
     try:
@@ -212,7 +212,7 @@ def process_document(payload: ProcessDoc):
     # 3) catalog
     with get_conn() as conn, conn.cursor() as cur:
         cur.execute("SELECT course_id, title FROM courses")
-        catalog = [{"course_id": r[0], "title": r[1]} for r in cur.fetchall()]
+        catalog = [{"course_id": r['course_id'], "title": r['title']} for r in cur.fetchall()]
     known_ids = {c["course_id"] for c in catalog}
 
     # 4) LLM extract
@@ -243,7 +243,7 @@ def process_document(payload: ProcessDoc):
     with get_conn() as conn, conn.cursor() as cur:
         cur.execute("INSERT INTO roles (name) VALUES (%s) ON CONFLICT (name) DO NOTHING", (payload.role,))
         cur.execute("SELECT role_id FROM roles WHERE name=%s", (payload.role,))
-        role_id = cur.fetchone()[0]
+        role_id = cur.fetchone()['role_id']
 
         for cid in kept_ids:
             cur.execute("""

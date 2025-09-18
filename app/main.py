@@ -38,11 +38,19 @@ async def global_exception_handler(request, exc):
 
 @app.get("/health")
 def health():
+    import os
+    logger.info(f"BEDROCK_MODEL_ID={os.getenv('BEDROCK_MODEL_ID')!r}")
+    logger.info(f"AWS_REGION={os.getenv('AWS_REGION')!r}")
     try:
         with get_conn() as conn:
             with conn.cursor() as cur:
                 cur.execute("SELECT 1")
-        return {"status": "ok", "database": "connected"}
+        return {
+            "status": "ok", 
+            "database": "connected",
+            "bedrock_model_id": repr(os.getenv('BEDROCK_MODEL_ID')),
+            "aws_region": repr(os.getenv('AWS_REGION'))
+        }
     except Exception as e:
         logger.error(f"Health check failed: {e}")
         raise HTTPException(status_code=503, detail="Database connection failed")
