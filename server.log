@@ -446,3 +446,11 @@ INFO:     Finished server process [7579]
 INFO:     Started server process [8580]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/ai/role_extractor.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [8580]
+INFO:     Started server process [10183]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.

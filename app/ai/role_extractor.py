@@ -16,6 +16,9 @@ def extract_roles(text: str, roles: List[Dict[str,str]]) -> List[Dict[str,Any]]:
     """
     Определяет подходящие роли для документа на основе его содержания
     """
+    import logging
+    logger = logging.getLogger(__name__)
+    
     # Подготавливаем список ролей
     role_lines = [f'{r["name"]} :: {r.get("description", "")}' for r in roles]
     prompt = (
@@ -29,8 +32,10 @@ def extract_roles(text: str, roles: List[Dict[str,str]]) -> List[Dict[str,Any]]:
     
     try:
         out = bedrock_chat(prompt, max_tokens=600, temperature=0.1)
+        logger.info(f"Bedrock raw response for roles: {out}")
         data = json.loads(out)
         matches = data.get("roles", [])
+        logger.info(f"Parsed role matches: {matches}")
         
         # Валидация и нормализация
         norm = []
@@ -46,6 +51,6 @@ def extract_roles(text: str, roles: List[Dict[str,str]]) -> List[Dict[str,Any]]:
                 "reasoning": reasoning
             })
         return norm
-    except Exception:
-        # Если модель ответила не-JSON — возвращаем пусто
+    except Exception as e:
+        logger.error(f"Role extraction JSON parse error: {e}, raw output: {out if 'out' in locals() else 'No output'}")
         return []
