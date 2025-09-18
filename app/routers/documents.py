@@ -210,13 +210,27 @@ def process_document(payload: ProcessDoc):
         if not all_roles:
             raise HTTPException(status_code=500, detail="No roles found in database")
 
-    # 2) read text
+    # 2) read and validate PDF
     try:
         reader = PdfReader(path)
+        if reader.is_encrypted:
+            raise HTTPException(status_code=400, detail="Encrypted PDFs not supported")
+        
         pages = reader.pages[: (payload.pages_limit or len(reader.pages))]
         text = "\n".join((p.extract_text() or "") for p in pages)
+        
+        # Validate text content
+        if len(text.strip()) < 50:
+            raise HTTPException(status_code=400, detail="PDF contains insufficient text for analysis")
+        
+        # Limit text size for AI processing
+        if len(text) > 50000:
+            text = text[:50000] + "\n[Text truncated]"
+            
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"PDF read error: {e}")
+        raise HTTPException(status_code=500, detail=f"PDF read error: {str(e)[:100]}")
 
     # 3) catalog
     with get_conn() as conn, conn.cursor() as cur:
@@ -224,14 +238,17 @@ def process_document(payload: ProcessDoc):
         catalog = [{"course_id": r['course_id'], "title": r['title']} for r in cur.fetchall()]
     known_ids = {c["course_id"] for c in catalog}
 
-    # 4) LLM extract courses and roles with throttling handling
+    # 4) AI extract with error handling
+    matches = []
     try:
-        matches = extract_courses(text, catalog)  # [{course_id, confidence, evidence}]
+        matches = extract_courses(text, catalog)
+        logger.info(f"Course extraction: {len(matches)} courses found")
     except Exception as e:
-        if "ThrottlingException" in str(e):
-            matches = []  # Skip AI analysis due to rate limits
+        logger.error(f"Course extraction failed: {str(e)[:200]}")
+        if "ThrottlingException" in str(e) or "ValidationException" in str(e):
+            matches = []  # Continue without AI analysis
         else:
-            raise e
+            matches = []  # Graceful degradation
     
     try:
         roles_for_ai = [{'name': r['name']} for r in all_roles]
@@ -240,24 +257,8 @@ def process_document(payload: ProcessDoc):
         role_matches = extract_roles(text, roles_for_ai)  # [{role_name, confidence, reasoning}]
         logger.info(f"Role extraction completed: found {len(role_matches)} role matches: {role_matches}")
     except Exception as e:
-        logger.error(f"Role extraction failed: {e}")
-        # Fallback: rule-based role detection
-        text_lower = text.lower()
-
-        
-        # Simple keyword matching
-        if any(word in text_lower for word in ['radiation', 'x-ray', 'radioactive']):
-            role_matches.append({'role_name': 'lab_technician', 'confidence': 0.8, 'reasoning': 'Radiation safety document'})
-            role_matches.append({'role_name': 'biosafety_worker', 'confidence': 0.7, 'reasoning': 'Safety protocol document'})
-        elif any(word in text_lower for word in ['chemical', 'hazard', 'spill']):
-            role_matches.append({'role_name': 'lab_technician', 'confidence': 0.8, 'reasoning': 'Chemical safety document'})
-        elif any(word in text_lower for word in ['forklift', 'equipment', 'machinery']):
-            role_matches.append({'role_name': 'forklift_operator', 'confidence': 0.9, 'reasoning': 'Equipment safety document'})
-        else:
-            # General safety - apply to lab workers
-            role_matches.append({'role_name': 'lab_technician', 'confidence': 0.6, 'reasoning': 'General safety document'})
-        
-        logger.info(f"Using fallback role detection: {role_matches}")
+        logger.error(f"Role extraction failed: {str(e)[:200]}")
+        role_matches = []  # No fallback - use only AI results
 
     # 5) upsert into doc_course_map
     mapped_inserted, mapped_skipped = 0, 0
@@ -352,5 +353,6 @@ def process_document(payload: ProcessDoc):
             "rule_requirements": {"inserted": rules_inserted, "skipped": rules_skipped, "reason_skipped": "Rule already exists"},
             "user_assignments": {"inserted": assignments_inserted, "reason_skipped": "User already has assignment or completed course"}
         },
-        "summary": f"Found {len(matches)} courses, applied to {len(applied_roles)} roles, created {assignments_inserted} new assignments{' (AI throttled - limited analysis)' if not matches and not role_matches else ''}"
+        "summary": f"Found {len(matches)} courses, applied to {len(applied_roles)} roles, created {assignments_inserted} new assignments",
+        "processing_status": "success" if matches and role_matches else "partial" if matches or role_matches else "ai_unavailable"
     }
