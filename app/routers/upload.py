@@ -1,4 +1,5 @@
 import os
+import hashlib
 import logging
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from app.db import get_conn
@@ -23,14 +24,28 @@ async def upload_document(
     
     dest = os.path.join(data_dir, fname)
 
-    # сохраняем файл по кускам
+    # вычисляем хеш файла
+    file_hash = hashlib.md5()
+    file_content = await file.read()
+    file_hash.update(file_content)
+    hash_value = file_hash.hexdigest()
+    
+    # проверяем дубли по хешу
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute("SELECT doc_id, title FROM documents WHERE file_hash = %s", (hash_value,))
+        existing = cur.fetchone()
+        if existing:
+            return {
+                "duplicate": True,
+                "doc_id": existing['doc_id'],
+                "message": f"File already exists as '{existing['title']}'",
+                "filename": fname
+            }
+    
+    # сохраняем файл
     try:
         with open(dest, "wb") as out:
-            while True:
-                chunk = await file.read(1024 * 1024)
-                if not chunk:
-                    break
-                out.write(chunk)
+            out.write(file_content)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to save file: {e}")
 
@@ -41,8 +56,8 @@ async def upload_document(
     # регистрируем документ в БД
     with get_conn() as conn, conn.cursor() as cur:
         cur.execute(
-            "INSERT INTO documents (source, title, path) VALUES (%s,%s,%s) RETURNING doc_id",
-            (source, title, dest),
+            "INSERT INTO documents (source, title, path, file_hash) VALUES (%s,%s,%s,%s) RETURNING doc_id",
+            (source, title, dest, hash_value),
         )
         result = cur.fetchone()
         doc_id = result['doc_id']

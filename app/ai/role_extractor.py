@@ -4,18 +4,18 @@ import random
 from typing import List, Dict, Any
 from app.ai.bedrock_client import chat as bedrock_chat
 
-ROLE_SYS_PROMPT = """Ты — ассистент по охране труда. Тебе дают текст из нормативного PDF и список ролей сотрудников.
-Задача: определить, к каким ролям относится этот документ.
-Верни JSON с массивом roles, где каждый элемент: { "role_name": str, "confidence": 0..1, "reasoning": str }.
-Правила:
-- Используй ТОЛЬКО роли из предоставленного списка
-- Анализируй содержание документа и определяй целевые роли
-- confidence 0.5 если общие требования безопасности, 0.75 если специфичные для роли, 0.9-1.0 если прямые упоминания должности/оборудования
-- reasoning — краткое объяснение связи документа с ролью
-- Для радиационной безопасности используй radiation_worker
-- Для лабораторной работы используй lab_tech
-- Для химической безопасности используй chem_researcher
-Верни ТОЛЬКО JSON, без пояснений.
+ROLE_SYS_PROMPT = """You are a safety assistant. You are given text from a regulatory PDF and a list of employee roles.
+Task: determine which roles this document applies to.
+Return JSON with roles array, each element: { "role_name": str, "confidence": 0..1, "reasoning": str }.
+Rules:
+- Use ONLY roles from the provided list
+- Analyze document content and determine target roles
+- confidence 0.5 for general safety requirements, 0.75 for role-specific, 0.9-1.0 for direct mentions of position/equipment
+- reasoning - brief explanation of document-role connection
+- For radiation safety use radiation_worker
+- For laboratory work use lab_tech
+- For chemical safety use chem_researcher
+Return ONLY JSON, no explanations.
 """
 
 def extract_roles(text: str, roles: List[Dict[str,str]]) -> List[Dict[str,Any]]:
@@ -29,9 +29,9 @@ def extract_roles(text: str, roles: List[Dict[str,str]]) -> List[Dict[str,Any]]:
     role_lines = [f'{r["name"]} :: {r.get("description", "")}' for r in roles]
     prompt = (
         ROLE_SYS_PROMPT
-        + "\n\nСписок ролей:\n"
+        + "\n\nRole list:\n"
         + "\n".join(role_lines[:50])  # ограничим количество ролей
-        + "\n\nФрагмент нормативного текста:\n"
+        + "\n\nRegulatory text fragment:\n"
         + text[:15000]  # не перегружаем модель
         + "\n\nJSON:"
     )
