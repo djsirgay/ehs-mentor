@@ -218,3 +218,19 @@ INFO:     Finished server process [88305]
 INFO:     Started server process [88345]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'db_migrations/versions/add_training_tracking_columns.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [88345]
+INFO:     Started server process [89281]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'db_migrations/versions/0006_add_training_tracking.py', 'db_migrations/versions/add_training_tracking_columns.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [89281]
+INFO:     Started server process [89317]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.

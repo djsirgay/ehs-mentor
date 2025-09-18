@@ -10,8 +10,8 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers
-revision = 'add_training_tracking'
-down_revision = None
+revision = '0006_add_training_tracking'
+down_revision = '0005_fix_assignments_logic'
 branch_labels = None
 depends_on = None
 
