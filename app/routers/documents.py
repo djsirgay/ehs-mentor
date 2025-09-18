@@ -314,6 +314,7 @@ def process_document(payload: ProcessDoc):
         for role_name in applied_roles:
             cur.execute("""
             INSERT INTO assignments (user_id, course_id, status, due_date, assigned_by)
+            ON CONFLICT (user_id, course_id) DO NOTHING
             SELECT u.user_id,
                    rr.course_id,
                    'assigned'::text,
@@ -333,11 +334,7 @@ def process_document(payload: ProcessDoc):
              AND COALESCE(rr.active, TRUE)
              AND (rr.region IS NULL OR rr.region = %(region)s)
             WHERE r.name = %(role_name)s
-              AND NOT EXISTS (
-                SELECT 1 FROM assignments a
-                WHERE a.user_id = u.user_id AND a.course_id = rr.course_id
-                  AND a.status IN ('assigned','in_progress')
-              );
+;
             """, {"role_name": role_name, "region": payload.region})
             assignments_inserted += cur.rowcount
         conn.commit()
