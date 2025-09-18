@@ -5,6 +5,7 @@ from pypdf import PdfReader
 from app.db import get_conn
 from app.ai.mappers import map_text_to_courses
 from app.ai.extractor import extract_courses
+from app.ai.role_extractor import extract_roles
 
 router = APIRouter()
 
@@ -186,20 +187,25 @@ def extract_document_courses(payload: ExtractDoc):
 
 class ProcessDoc(BaseModel):
     doc_id: int
-    role: str
     region: str = "US-CA"
     frequency: str = "annual"
     pages_limit: int | None = 20  # None = read all pages
 
 @router.post("/documents/process")
 def process_document(payload: ProcessDoc):
-    # 1) resolve path
+    # 1) resolve path and get role if not provided
     with get_conn() as conn, conn.cursor() as cur:
         cur.execute("SELECT path FROM documents WHERE doc_id=%s", (payload.doc_id,))
         row = cur.fetchone()
         if not row:
             raise HTTPException(status_code=404, detail="Document not found")
         path = row['path']
+        
+        # Get all roles from database for AI analysis
+        cur.execute("SELECT role_id, name FROM roles")
+        all_roles = cur.fetchall()
+        if not all_roles:
+            raise HTTPException(status_code=500, detail="No roles found in database")
 
     # 2) read text
     try:
@@ -215,8 +221,9 @@ def process_document(payload: ProcessDoc):
         catalog = [{"course_id": r['course_id'], "title": r['title']} for r in cur.fetchall()]
     known_ids = {c["course_id"] for c in catalog}
 
-    # 4) LLM extract
+    # 4) LLM extract courses and roles
     matches = extract_courses(text, catalog)  # [{course_id, confidence, evidence}]
+    role_matches = extract_roles(text, [{'name': r['name']} for r in all_roles])  # [{role_name, confidence, reasoning}]
 
     # 5) upsert into doc_course_map
     mapped_inserted, mapped_skipped = 0, 0
@@ -238,61 +245,73 @@ def process_document(payload: ProcessDoc):
             mapped_inserted += 1
         conn.commit()
 
-    # 6) ensure role exists & promote to rule_requirements
+    # 6) promote to rule_requirements for AI-detected roles
     rules_inserted, rules_skipped = 0, 0
+    applied_roles = []
     with get_conn() as conn, conn.cursor() as cur:
-        cur.execute("INSERT INTO roles (name) VALUES (%s) ON CONFLICT (name) DO NOTHING", (payload.role,))
-        cur.execute("SELECT role_id FROM roles WHERE name=%s", (payload.role,))
-        role_id = cur.fetchone()['role_id']
-
-        for cid in kept_ids:
-            cur.execute("""
-                INSERT INTO rule_requirements (role_id, course_id, frequency, region, active)
-                VALUES (%s,%s,%s,%s,TRUE)
-                ON CONFLICT (role_id, course_id, region) DO NOTHING
-            """, (role_id, cid, payload.frequency, payload.region))
-            if cur.rowcount == 1:
-                rules_inserted += 1
-            else:
-                rules_skipped += 1
+        # Apply to roles with confidence >= 0.6
+        for role_match in role_matches:
+            if role_match['confidence'] < 0.6:
+                continue
+            role_name = role_match['role_name']
+            cur.execute("SELECT role_id FROM roles WHERE name=%s", (role_name,))
+            role_row = cur.fetchone()
+            if not role_row:
+                continue
+            role_id = role_row['role_id']
+            applied_roles.append(role_name)
+            
+            for cid in kept_ids:
+                cur.execute("""
+                    INSERT INTO rule_requirements (role_id, course_id, frequency, region, active)
+                    VALUES (%s,%s,%s,%s,TRUE)
+                    ON CONFLICT (role_id, course_id, region) DO NOTHING
+                """, (role_id, cid, payload.frequency, payload.region))
+                if cur.rowcount == 1:
+                    rules_inserted += 1
+                else:
+                    rules_skipped += 1
         conn.commit()
 
-    # 7) sync assignments for users with that role
+    # 7) sync assignments for users with detected roles
+    assignments_inserted = 0
     with get_conn() as conn, conn.cursor() as cur:
-        cur.execute("""
-        INSERT INTO assignments (user_id, course_id, status, due_date, assigned_by)
-        SELECT u.user_id,
-               rr.course_id,
-               'assigned'::text,
-               CASE rr.frequency
-                 WHEN 'annual' THEN CURRENT_DATE + INTERVAL '365 days'
-                 WHEN 'every_3_years' THEN CURRENT_DATE + INTERVAL '1095 days'
-                 ELSE NULL
-               END,
-               'system'::text
-        FROM users u
-        JOIN roles r ON r.name = u.role
-        JOIN rule_requirements rr
-          ON rr.role_id = r.role_id
-         AND COALESCE(rr.active, TRUE)
-         AND (rr.region IS NULL OR rr.region = %(region)s)
-        WHERE r.name = %(role)s
-          AND NOT EXISTS (
-            SELECT 1 FROM user_courses uc
-            WHERE uc.user_id = u.user_id AND uc.course_id = rr.course_id
-          )
-          AND NOT EXISTS (
-            SELECT 1 FROM assignments a
-            WHERE a.user_id = u.user_id AND a.course_id = rr.course_id
-              AND a.status IN ('assigned','in_progress','completed','overdue')
-          );
-        """, {"role": payload.role, "region": payload.region})
-        assignments_inserted = cur.rowcount
+        for role_name in applied_roles:
+            cur.execute("""
+            INSERT INTO assignments (user_id, course_id, status, due_date, assigned_by)
+            SELECT u.user_id,
+                   rr.course_id,
+                   'assigned'::text,
+                   CASE rr.frequency
+                     WHEN 'annual' THEN CURRENT_DATE + INTERVAL '365 days'
+                     WHEN 'every_3_years' THEN CURRENT_DATE + INTERVAL '1095 days'
+                     ELSE NULL
+                   END,
+                   'system'::text
+            FROM users u
+            JOIN roles r ON r.name = u.role
+            JOIN rule_requirements rr
+              ON rr.role_id = r.role_id
+             AND COALESCE(rr.active, TRUE)
+             AND (rr.region IS NULL OR rr.region = %(region)s)
+            WHERE r.name = %(role_name)s
+              AND NOT EXISTS (
+                SELECT 1 FROM user_courses uc
+                WHERE uc.user_id = u.user_id AND uc.course_id = rr.course_id
+              )
+              AND NOT EXISTS (
+                SELECT 1 FROM assignments a
+                WHERE a.user_id = u.user_id AND a.course_id = rr.course_id
+                  AND a.status IN ('assigned','in_progress','completed','overdue')
+              );
+            """, {"role_name": role_name, "region": payload.region})
+            assignments_inserted += cur.rowcount
         conn.commit()
 
     return {
         "doc_id": payload.doc_id,
-        "role": payload.role,
+        "detected_roles": applied_roles,
+        "role_analysis": [{"role": r['role_name'], "confidence": r['confidence'], "reasoning": r['reasoning']} for r in role_matches],
         "mapped": {"inserted": mapped_inserted, "skipped": mapped_skipped},
         "promoted": {"inserted": rules_inserted, "skipped": rules_skipped},
         "assignments": {"inserted": assignments_inserted},
