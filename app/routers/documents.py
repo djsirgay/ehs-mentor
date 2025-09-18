@@ -1,4 +1,5 @@
 import os
+import logging
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from pypdf import PdfReader
@@ -6,6 +7,8 @@ from app.db import get_conn
 from app.ai.mappers import map_text_to_courses
 from app.ai.extractor import extract_courses
 from app.ai.role_extractor import extract_roles
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -231,9 +234,11 @@ def process_document(payload: ProcessDoc):
             raise e
     
     try:
+        logger.info(f"Starting role extraction for doc_id {payload.doc_id} with {len(all_roles)} roles")
         role_matches = extract_roles(text, [{'name': r['name']} for r in all_roles])  # [{role_name, confidence, reasoning}]
+        logger.info(f"Role extraction completed: found {len(role_matches)} role matches")
     except Exception as e:
-        # If AI fails, no roles detected
+        logger.error(f"Role extraction failed: {e}")
         role_matches = []
 
     # 5) upsert into doc_course_map

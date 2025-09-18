@@ -422,3 +422,19 @@ INFO:     Finished server process [2544]
 INFO:     Started server process [3973]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/routers/documents.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [3973]
+INFO:     Started server process [7538]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/routers/documents.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [7538]
+INFO:     Started server process [7579]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
