@@ -317,11 +317,14 @@ def process_document(payload: ProcessDoc):
             SELECT u.user_id,
                    rr.course_id,
                    'assigned'::text,
-                   CASE rr.frequency
-                     WHEN 'annual' THEN CURRENT_DATE + INTERVAL '365 days'
-                     WHEN 'every_3_years' THEN CURRENT_DATE + INTERVAL '1095 days'
-                     ELSE NULL
-                   END,
+                   COALESCE(
+                     CASE rr.frequency
+                       WHEN 'annual' THEN CURRENT_DATE + INTERVAL '365 days'
+                       WHEN 'every_3_years' THEN CURRENT_DATE + INTERVAL '1095 days'
+                       ELSE CURRENT_DATE + INTERVAL '365 days'
+                     END,
+                     CURRENT_DATE + INTERVAL '365 days'
+                   ),
                    'system'::text
             FROM users u
             JOIN roles r ON r.name = u.role
