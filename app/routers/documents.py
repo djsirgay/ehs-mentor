@@ -221,8 +221,15 @@ def process_document(payload: ProcessDoc):
         catalog = [{"course_id": r['course_id'], "title": r['title']} for r in cur.fetchall()]
     known_ids = {c["course_id"] for c in catalog}
 
-    # 4) LLM extract courses and roles
-    matches = extract_courses(text, catalog)  # [{course_id, confidence, evidence}]
+    # 4) LLM extract courses and roles with throttling handling
+    try:
+        matches = extract_courses(text, catalog)  # [{course_id, confidence, evidence}]
+    except Exception as e:
+        if "ThrottlingException" in str(e):
+            matches = []  # Skip AI analysis due to rate limits
+        else:
+            raise e
+    
     try:
         role_matches = extract_roles(text, [{'name': r['name']} for r in all_roles])  # [{role_name, confidence, reasoning}]
     except Exception as e:
@@ -326,5 +333,5 @@ def process_document(payload: ProcessDoc):
             "rule_requirements": {"inserted": rules_inserted, "skipped": rules_skipped, "reason_skipped": "Rule already exists"},
             "user_assignments": {"inserted": assignments_inserted, "reason_skipped": "User already has assignment or completed course"}
         },
-        "summary": f"Found {len(matches)} courses, applied to {len(applied_roles)} roles, created {assignments_inserted} new assignments"
+        "summary": f"Found {len(matches)} courses, applied to {len(applied_roles)} roles, created {assignments_inserted} new assignments" + (" (AI throttled - limited analysis)" if not matches and not role_matches else "")
     }
