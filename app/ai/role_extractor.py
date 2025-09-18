@@ -1,4 +1,6 @@
 import json
+import time
+import random
 from typing import List, Dict, Any
 from app.ai.bedrock_client import chat as bedrock_chat
 
@@ -30,9 +32,26 @@ def extract_roles(text: str, roles: List[Dict[str,str]]) -> List[Dict[str,Any]]:
         + "\n\nJSON:"
     )
     
+    # Retry logic for throttling
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            if attempt > 0:
+                delay = (2 ** attempt) + random.uniform(0, 1)  # Exponential backoff
+                logger.info(f"Retrying Bedrock call in {delay:.2f}s (attempt {attempt + 1}/{max_retries})")
+                time.sleep(delay)
+            
+            out = bedrock_chat(prompt, max_tokens=600, temperature=0.1)
+            logger.info(f"Bedrock raw response for roles: {out}")
+            break
+        except Exception as e:
+            if "ThrottlingException" in str(e) and attempt < max_retries - 1:
+                logger.warning(f"Throttling on attempt {attempt + 1}, retrying...")
+                continue
+            else:
+                raise e
+    
     try:
-        out = bedrock_chat(prompt, max_tokens=600, temperature=0.1)
-        logger.info(f"Bedrock raw response for roles: {out}")
         data = json.loads(out)
         matches = data.get("roles", [])
         logger.info(f"Parsed role matches: {matches}")

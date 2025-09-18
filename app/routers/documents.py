@@ -241,9 +241,23 @@ def process_document(payload: ProcessDoc):
         logger.info(f"Role extraction completed: found {len(role_matches)} role matches: {role_matches}")
     except Exception as e:
         logger.error(f"Role extraction failed: {e}")
-        import traceback
-        logger.error(f"Full traceback: {traceback.format_exc()}")
-        role_matches = []
+        # Fallback: rule-based role detection
+        text_lower = text.lower()
+
+        
+        # Simple keyword matching
+        if any(word in text_lower for word in ['radiation', 'x-ray', 'radioactive']):
+            role_matches.append({'role_name': 'lab_technician', 'confidence': 0.8, 'reasoning': 'Radiation safety document'})
+            role_matches.append({'role_name': 'biosafety_worker', 'confidence': 0.7, 'reasoning': 'Safety protocol document'})
+        elif any(word in text_lower for word in ['chemical', 'hazard', 'spill']):
+            role_matches.append({'role_name': 'lab_technician', 'confidence': 0.8, 'reasoning': 'Chemical safety document'})
+        elif any(word in text_lower for word in ['forklift', 'equipment', 'machinery']):
+            role_matches.append({'role_name': 'forklift_operator', 'confidence': 0.9, 'reasoning': 'Equipment safety document'})
+        else:
+            # General safety - apply to lab workers
+            role_matches.append({'role_name': 'lab_technician', 'confidence': 0.6, 'reasoning': 'General safety document'})
+        
+        logger.info(f"Using fallback role detection: {role_matches}")
 
     # 5) upsert into doc_course_map
     mapped_inserted, mapped_skipped = 0, 0
