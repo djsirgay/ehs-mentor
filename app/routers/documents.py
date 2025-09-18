@@ -333,5 +333,5 @@ def process_document(payload: ProcessDoc):
             "rule_requirements": {"inserted": rules_inserted, "skipped": rules_skipped, "reason_skipped": "Rule already exists"},
             "user_assignments": {"inserted": assignments_inserted, "reason_skipped": "User already has assignment or completed course"}
         },
-        "summary": f"Found {len(matches)} courses, applied to {len(applied_roles)} roles, created {assignments_inserted} new assignments" + (" (AI throttled - limited analysis)" if not matches and not role_matches else "")
+        "summary": f"Found {len(matches)} courses, applied to {len(applied_roles)} roles, created {assignments_inserted} new assignments{' (AI throttled - limited analysis)' if not matches and not role_matches else ''}"
     }
