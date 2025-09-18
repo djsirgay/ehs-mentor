@@ -330,13 +330,9 @@ def process_document(payload: ProcessDoc):
              AND (rr.region IS NULL OR rr.region = %(region)s)
             WHERE r.name = %(role_name)s
               AND NOT EXISTS (
-                SELECT 1 FROM user_courses uc
-                WHERE uc.user_id = u.user_id AND uc.course_id = rr.course_id
-              )
-              AND NOT EXISTS (
                 SELECT 1 FROM assignments a
                 WHERE a.user_id = u.user_id AND a.course_id = rr.course_id
-                  AND a.status IN ('assigned','in_progress','completed','overdue')
+                  AND a.status IN ('assigned','in_progress')
               );
             """, {"role_name": role_name, "region": payload.region})
             assignments_inserted += cur.rowcount
