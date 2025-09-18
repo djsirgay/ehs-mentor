@@ -5,7 +5,7 @@ import logging
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from app.routers import recommend, assignments, chat, documents, upload
+from app.routers import recommend, assignments, chat, documents, upload, stats, reports
 from app.db import get_conn
 
 # Настройка логирования
@@ -60,3 +60,5 @@ app.include_router(assignments.router, prefix="/api")
 app.include_router(chat.router, prefix="/api")
 app.include_router(documents.router, prefix="/api")
 app.include_router(upload.router, prefix="/api")
+app.include_router(stats.router, prefix="/api")
+app.include_router(reports.router, prefix="/api")
