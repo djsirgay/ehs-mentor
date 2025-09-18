@@ -234,11 +234,15 @@ def process_document(payload: ProcessDoc):
             raise e
     
     try:
-        logger.info(f"Starting role extraction for doc_id {payload.doc_id} with {len(all_roles)} roles")
-        role_matches = extract_roles(text, [{'name': r['name']} for r in all_roles])  # [{role_name, confidence, reasoning}]
-        logger.info(f"Role extraction completed: found {len(role_matches)} role matches")
+        roles_for_ai = [{'name': r['name']} for r in all_roles]
+        logger.info(f"Starting role extraction for doc_id {payload.doc_id} with roles: {[r['name'] for r in roles_for_ai]}")
+        logger.info(f"Text sample for AI: {text[:200]}...")
+        role_matches = extract_roles(text, roles_for_ai)  # [{role_name, confidence, reasoning}]
+        logger.info(f"Role extraction completed: found {len(role_matches)} role matches: {role_matches}")
     except Exception as e:
         logger.error(f"Role extraction failed: {e}")
+        import traceback
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         role_matches = []
 
     # 5) upsert into doc_course_map
